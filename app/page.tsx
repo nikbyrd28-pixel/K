@@ -30,7 +30,7 @@ function HeroSection() {
           <div className="flex items-center gap-3 mb-7">
             <span className="h-px w-8 bg-primary/50" />
             <span className="text-xs uppercase tracking-[0.3em] text-primary">
-              Small-Batch Body Care &amp; Gift Rituals
+              Small-Batch Body Care &amp; Gift Routines
             </span>
           </div>
           <h1 className="font-serif text-5xl lg:text-7xl leading-[1.04] mb-7 text-balance">
@@ -62,7 +62,7 @@ function HeroSection() {
               ))}
             </div>
             <span className="text-sm text-muted-foreground">
-              Small-batch care boxes made for gifting, restocks, and everyday rituals
+              Small-batch care boxes made for gifting, restocks, and everyday routines
             </span>
           </div>
         </div>
@@ -142,7 +142,7 @@ function CategoryStrip() {
   )
 }
 
-function RitualSection() {
+function RoutineSection() {
   const steps = [
     {
       title: 'Pure Botanicals',
@@ -154,7 +154,7 @@ function RitualSection() {
     },
     {
       title: 'Lasting Radiance',
-      copy: 'Soft, lasting hydration wrapped in memorable scent profiles that turn everyday body care into a ritual.'
+      copy: 'Soft, lasting hydration wrapped in memorable scent profiles that turn everyday body care into a routine.'
     },
   ]
 
@@ -218,7 +218,7 @@ export default function Home() {
       <MarqueeBar />
       <CategoryStrip />
       <FeaturedProducts />
-      <RitualSection />
+      <RoutineSection />
       <StoryTeaser />
     </>
   )

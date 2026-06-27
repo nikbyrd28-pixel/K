@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
               ) : allSoldOut ? (
                 'Sold Out'
               ) : (
-                'Add to Ritual'
+                'Add to Routine'
               )}
             </Button>
 

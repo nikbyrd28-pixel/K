@@ -103,7 +103,7 @@ export function ProductCard({ product }: { product: Product }) {
           disabled={allSoldOut || sel.soldOut}
           className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-12 disabled:opacity-50 shadow-lg shadow-primary/10"
         >
-          {allSoldOut ? 'Sold Out' : 'Add to Ritual'}
+          {allSoldOut ? 'Sold Out' : 'Add to Routine'}
         </Button>
       </div>
     </article>

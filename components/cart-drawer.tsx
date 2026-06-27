@@ -36,13 +36,13 @@ export function CartDrawer() {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
-        aria-label="Care ritual drawer"
+        aria-label="Care routine drawer"
         aria-modal="true"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 h-20 border-b border-border">
           <h2 className="font-serif text-2xl tracking-wide text-primary">
-            Your Ritual{cartCount > 0 ? ` (${cartCount})` : ''}
+            Your Routine{cartCount > 0 ? ` (${cartCount})` : ''}
           </h2>
           <button
             onClick={closeCart}
@@ -57,7 +57,7 @@ export function CartDrawer() {
         {cart.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
             <ShoppingBag className="w-10 h-10 text-muted-foreground" />
-            <p className="text-muted-foreground">Your ritual is waiting.</p>
+            <p className="text-muted-foreground">Your routine is waiting.</p>
             <Button
               onClick={closeCart}
               className="rounded-none text-xs uppercase tracking-[0.18em] mt-2"
@@ -131,7 +131,7 @@ export function CartDrawer() {
             >
               {isCheckingOut ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Preparing Your Ritual
+                  <Loader2 className="w-4 h-4 animate-spin" /> Preparing Your Routine
                 </span>
               ) : (
                 'Complete Securely'

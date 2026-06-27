@@ -51,7 +51,7 @@ const products = [
     handle: 'the-seen-jasmine-gardenia-shield',
     productType: 'Body Care',
     vendor: 'Seen & Heard Care',
-    bodyHtml: 'Elevate your daily ritual with a sophisticated, pure floral shield. This blend locks in vital moisture all day long, draping your skin in an intoxicating, delicate floral bouquet that protects against environmental dryness.',
+    bodyHtml: 'Elevate your daily routine with a sophisticated, pure floral shield. This blend locks in vital moisture all day long, draping your skin in an intoxicating, delicate floral bouquet that protects against environmental dryness.',
     variants: {
       price: '68.00',
     },
