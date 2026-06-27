@@ -3,13 +3,18 @@ import { NextResponse } from 'next/server'
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN
 const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
 
-if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
-  throw new Error('Missing required Shopify environment variables')
+function normalizeShopDomain(domain: string) {
+  return domain.replace(/^https?:\/\//, '').replace(/\/$/, '')
 }
 
-const SHOPIFY_ENDPOINT = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`
-
 export async function GET() {
+  if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
+    console.error('[v0] Missing Shopify product environment variables')
+    return NextResponse.json({ error: 'Missing Shopify configuration' }, { status: 500 })
+  }
+
+  const shopifyEndpoint = `https://${normalizeShopDomain(SHOPIFY_STORE_DOMAIN)}/api/2024-01/graphql.json`
+
   const query = `
     query GetProducts {
       products(first: 10) {
@@ -45,7 +50,7 @@ export async function GET() {
   `
 
   try {
-    const response = await fetch(SHOPIFY_ENDPOINT, {
+    const response = await fetch(shopifyEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

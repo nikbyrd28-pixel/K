@@ -3,11 +3,9 @@ import { NextResponse } from 'next/server'
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN
 const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
 
-if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
-  throw new Error('Missing required Shopify environment variables')
+function normalizeShopDomain(domain: string) {
+  return domain.replace(/^https?:\/\//, '').replace(/\/$/, '')
 }
-
-const SHOPIFY_ENDPOINT = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`
 
 interface CheckoutLine {
   variantId: string
@@ -16,6 +14,13 @@ interface CheckoutLine {
 
 export async function POST(request: Request) {
   try {
+    if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
+      console.error('[v0] Missing Shopify checkout environment variables')
+      return NextResponse.json({ error: 'Missing Shopify configuration' }, { status: 500 })
+    }
+
+    const shopifyEndpoint = `https://${normalizeShopDomain(SHOPIFY_STORE_DOMAIN)}/api/2024-01/graphql.json`
+
     const body = await request.json()
     const lines: CheckoutLine[] = body.lines || []
 
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
       },
     }
 
-    const response = await fetch(SHOPIFY_ENDPOINT, {
+    const response = await fetch(shopifyEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
