@@ -9,7 +9,7 @@ function HeroSection() {
     <section className="relative bg-background min-h-[90vh] flex items-center">
       <Image
         src="/hero.png"
-        alt="Founder of Hubs & Babydoll with the SEEN & HEARD body boxes"
+        alt="Founder of Seen & Heard Care with the Seen & Heard Care body boxes"
         fill
         className="object-cover object-center"
         sizes="100vw"

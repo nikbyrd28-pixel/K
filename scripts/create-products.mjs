@@ -30,7 +30,7 @@ const products = [
     title: 'The SEEN Lavender Set',
     handle: 'the-seen-lavender-set',
     productType: 'Body Care',
-    vendor: 'SEEN & HEARD',
+    vendor: 'Seen & Heard Care',
     bodyHtml: 'Melt away the mental noise of the day. Formulated with pure Shea Butter, Mango Butter, Jojoba Oil, and therapeutic Lavender Essential Oil, this set deeply hydrates, reduces inflammation, and prepares your mind and body for deep, restorative rest.',
     variants: {
       price: '58.00',
@@ -40,7 +40,7 @@ const products = [
     title: 'The HEARD Bay Rum Experience',
     handle: 'the-heard-bay-rum-experience',
     productType: 'Body Care',
-    vendor: 'SEEN & HEARD',
+    vendor: 'Seen & Heard Care',
     bodyHtml: 'A grounding, full-body experience designed for rich, masculine or unisex hydration. Utilizing classic West Indian Bay Rum botanicals, it leaves an energetic, crisp finish that keeps skin velvety and vibrant from morning to night.',
     variants: {
       price: '68.00',
@@ -50,7 +50,7 @@ const products = [
     title: 'The SEEN Jasmine & Gardenia Shield',
     handle: 'the-seen-jasmine-gardenia-shield',
     productType: 'Body Care',
-    vendor: 'SEEN & HEARD',
+    vendor: 'Seen & Heard Care',
     bodyHtml: 'Elevate your daily ritual with a sophisticated, pure floral shield. This blend locks in vital moisture all day long, draping your skin in an intoxicating, delicate floral bouquet that protects against environmental dryness.',
     variants: {
       price: '68.00',
@@ -59,7 +59,7 @@ const products = [
 ]
 
 async function createProducts() {
-  console.log('[v0] Starting product creation for SEEN & HEARD store...\n')
+  console.log('[v0] Starting product creation for Seen & Heard Care store...\n')
 
   for (const product of products) {
     try {

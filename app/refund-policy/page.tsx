@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Refund Policy',
   description:
-    'Hubs & Babydoll refund, return, and exchange policy for our handcrafted body care and wellness essentials.',
+    'Seen & Heard Care refund, return, and exchange policy for our handcrafted body care and wellness essentials.',
 }
 
 const sections = [

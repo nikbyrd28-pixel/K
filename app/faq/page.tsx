@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react'
 
 const FAQS = [
   {
-    question: 'What makes Hubs & Babydoll different?',
+    question: 'What makes Seen & Heard Care different?',
     answer:
       'Every product is made in small batches with rich plant-based oils and butters, then curated into routines that feel intentional — not generic, watered down, or rushed off a factory line.',
   },

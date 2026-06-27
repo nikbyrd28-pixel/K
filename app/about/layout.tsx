@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Our Story',
   description:
-    'The story behind Hubs & Babydoll, a small home-based brand creating handcrafted self-care essentials and meaningful wellness moments.',
+    'The story behind Seen & Heard Care, a small home-based brand creating handcrafted self-care essentials and meaningful wellness moments.',
   alternates: {
     canonical: '/about',
   },

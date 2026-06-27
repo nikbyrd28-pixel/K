@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Our Story',
   description:
-    'Hubs & Babydoll is a small, home-based brand creating handcrafted self-care essentials for the people who care for everyone else.',
+    'Seen & Heard Care is a small, home-based brand creating handcrafted self-care essentials for the people who care for everyone else.',
 }
 
 function EventsSection() {
@@ -65,7 +65,7 @@ export default function AboutPage() {
               The husband who keeps saying &ldquo;I&apos;m good&rdquo; while carrying the weight of
               providing. The mother who remembers everyone&apos;s appointments but forgets her own.
               The woman holding it all together while quietly running on empty. We&apos;ve met them
-              all — and that&apos;s why Hubs &amp; Babydoll exists.
+              all — and that&apos;s why Seen &amp; Heard Care exists.
             </p>
             <p className="text-base lg:text-lg text-muted-foreground leading-relaxed text-pretty">
               We&apos;re a small, home-based brand creating handcrafted self-care essentials and gift
@@ -101,7 +101,7 @@ export default function AboutPage() {
             If you see us at a local vending event, please stop by. We love hearing your stories,
             learning what you&apos;re celebrating and what you&apos;re navigating, and helping you
             find the products that fit the season you&apos;re in. Thank you for supporting our dream
-            and allowing Hubs &amp; Babydoll to become part of your routines.
+            and allowing Seen &amp; Heard Care to become part of your routines.
           </p>
         </div>
       </section>
