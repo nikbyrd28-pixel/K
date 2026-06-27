@@ -6,24 +6,39 @@ import { WaitlistSection } from '@/components/waitlist-section'
 
 const FAQS = [
   {
-    question: 'Are your products safe for highly sensitive skin?',
+    question: 'What makes Hubs & Babydoll different?',
     answer:
-      'Absolutely. We build our products around premium, real oils and natural plant butters like shea and mango. We avoid harsh synthetic chemicals, fillers, and parabens that typically cause flare-ups or irritation.',
+      'Every product is made in small batches with rich plant-based oils and butters, then curated into routines that feel intentional — not generic, watered down, or rushed off a factory line.',
+  },
+  {
+    question: 'Are your products safe for sensitive skin?',
+    answer:
+      'Our formulas are built around nourishing ingredients like shea butter, mango butter, jojoba oil, essential oils, and Vitamin E. If you have allergies or highly reactive skin, review the ingredients first and patch test before full use.',
   },
   {
     question: 'How long does the hydration last?',
     answer:
-      'Our body butters and oils are formulated for all-day hydration — most customers notice lasting moisture 8–12 hours after application.',
+      'Our body butters and oils are made for lasting moisture. Most customers notice soft, hydrated skin for hours after applying, especially when used after a shower or bath.',
   },
   {
-    question: 'Is this line unisex?',
+    question: 'Is this line only for women?',
     answer:
-      'Absolutely. Our scents and formulas are designed to be enjoyed by everyone. Many of our customers buy for their husbands, partners, and fathers too.',
+      'No. The SEEN and HEARD collections were created so everyone can feel cared for. Some scents lean soft and floral, some lean warm and grounding, and many customers buy them as gifts for partners, parents, and friends.',
   },
   {
-    question: 'How are orders shipped?',
+    question: 'Do you sell gift boxes?',
     answer:
-      "We are currently selling in person at local vending events. Follow us on Instagram to find out where we'll be next, or join our email list to be notified when we launch online ordering.",
+      'Yes. Our body boxes are designed as complete care moments — thoughtful gifts for birthdays, holidays, thank-yous, and the people who are always taking care of everyone else.',
+  },
+  {
+    question: 'How should I use the body oils and butters?',
+    answer:
+      'Apply to clean skin, ideally while skin is slightly damp. Use body oil for a silky glow, body butter for richer moisture, or layer both for a more indulgent routine.',
+  },
+  {
+    question: 'How do I hear about restocks and new products?',
+    answer:
+      'Join the email list to get updates on new products, restocks, local vending dates, and exclusive offers.',
   },
 ]
 

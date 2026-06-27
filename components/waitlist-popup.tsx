@@ -15,7 +15,7 @@ export function WaitlistPopup() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (sessionStorage.getItem(STORAGE_KEY)) return
-    const timer = setTimeout(() => setOpen(true), 2500)
+    const timer = setTimeout(() => setOpen(true), 12000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -101,7 +101,7 @@ export function WaitlistPopup() {
           <div className="flex items-center justify-center gap-3 mb-5">
             <span className="h-px w-8 bg-primary/50" />
             <span className="text-xs uppercase tracking-[0.3em] text-primary">
-              Coming Online Soon
+              Stay in the Loop
             </span>
             <span className="h-px w-8 bg-primary/50" />
           </div>
@@ -109,10 +109,10 @@ export function WaitlistPopup() {
             id="waitlist-popup-title"
             className="font-serif text-3xl lg:text-4xl mb-4 text-balance leading-tight"
           >
-            Be First to Know When We Launch Online.
+            Be First to Know What&apos;s Next.
           </h2>
           <p className="text-sm lg:text-base text-muted-foreground leading-relaxed mb-8 text-pretty">
-            Join our list and get early access to new products and exclusive offers.
+            Join our list for restocks, new products, local vending dates, and exclusive offers.
           </p>
 
           {status === 'success' ? (

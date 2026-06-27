@@ -52,35 +52,45 @@ export function SiteFooter() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-6">
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Hubs & Babydoll on Instagram"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <InstagramIcon className="w-5 h-5" />
-            </a>
-            <a
-              href="https://tiktok.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Hubs & Babydoll on TikTok"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <TikTokIcon className="w-5 h-5" />
-            </a>
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Hubs & Babydoll on Facebook"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <FacebookIcon className="w-5 h-5" />
-            </a>
-          </div>
+          {(process.env.NEXT_PUBLIC_INSTAGRAM_URL ||
+            process.env.NEXT_PUBLIC_TIKTOK_URL ||
+            process.env.NEXT_PUBLIC_FACEBOOK_URL) && (
+            <div className="flex items-center gap-6">
+              {process.env.NEXT_PUBLIC_INSTAGRAM_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Hubs & Babydoll on Instagram"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <InstagramIcon className="w-5 h-5" />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_TIKTOK_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_TIKTOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Hubs & Babydoll on TikTok"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <TikTokIcon className="w-5 h-5" />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_FACEBOOK_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_FACEBOOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Hubs & Babydoll on Facebook"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <FacebookIcon className="w-5 h-5" />
+                </a>
+              )}
+            </div>
+          )}
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
             © 2026 Hubs &amp; Babydoll · Handcrafted Excellence
           </p>

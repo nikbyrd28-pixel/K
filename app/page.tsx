@@ -39,7 +39,7 @@ function HeroSection() {
           </h1>
           <p className="text-base lg:text-lg text-muted-foreground mb-9 leading-relaxed max-w-lg text-pretty">
             Handcrafted body care and wellness essentials, thoughtfully curated to help the people
-            who care for everyone else feel seen, heard, and appreciated. Add it to your cart.
+            who care for everyone else feel seen, heard, and appreciated.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -132,7 +132,7 @@ function CategoryStrip() {
                   {cat.desc}
                 </span>
                 <span className="block text-[11px] uppercase tracking-[0.15em] text-primary/70 mt-3">
-                  Available in person &amp; online soon
+                  Available now
                 </span>
               </span>
             </Link>
