@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
-import { WaitlistSection } from '@/components/waitlist-section'
 import { useProducts } from '@/hooks/use-products'
 
 export default function ShopPage() {
@@ -68,8 +67,6 @@ export default function ShopPage() {
           )}
         </div>
       </section>
-
-      <WaitlistSection />
     </>
   )
 }

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { WaitlistSection } from '@/components/waitlist-section'
 
 const FAQS = [
   {
@@ -38,7 +37,7 @@ const FAQS = [
   {
     question: 'How do I hear about restocks and new products?',
     answer:
-      'Join the email list to get updates on new products, restocks, local vending dates, and exclusive offers. Your email is saved in Shopify for customer updates and marketing opt-in.'
+      'Follow our social pages and check the shop for current product drops, restocks, local vending dates, and seasonal offers.'
   },
 ]
 
@@ -93,8 +92,6 @@ export default function FAQPage() {
           </div>
         </div>
       </section>
-
-      <WaitlistSection />
     </>
   )
 }
