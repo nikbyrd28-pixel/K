@@ -111,7 +111,7 @@ export default function ProductDetailPage() {
 
           {/* Details + buy */}
           <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.3em] text-primary">Seen &amp; Heard Care</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-primary">Hubs &amp; Babydoll</span>
             <h1 className="font-serif text-4xl lg:text-5xl leading-[1.08] mt-4 text-balance">
               {name}
             </h1>

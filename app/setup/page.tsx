@@ -27,7 +27,7 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6">Seen & Heard Care Store Setup</h1>
+        <h1 className="text-4xl font-bold mb-6">Hubs & Babydoll Store Setup</h1>
 
         <div className="bg-card rounded-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-4">Create Sample Products</h2>

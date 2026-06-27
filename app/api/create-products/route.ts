@@ -12,7 +12,7 @@ const products = [
     title: 'The SEEN Lavender Set',
     handle: 'the-seen-lavender-set',
     productType: 'Body Care',
-    vendor: 'Seen & Heard Care',
+    vendor: 'Hubs & Babydoll',
     bodyHtml: 'Melt away the mental noise of the day. Formulated with pure Shea Butter, Mango Butter, Jojoba Oil, and therapeutic Lavender Essential Oil, this set deeply hydrates, reduces inflammation, and prepares your mind and body for deep, restorative rest.',
     variants: {
       price: '58.00',
@@ -22,7 +22,7 @@ const products = [
     title: 'The HEARD Bay Rum Experience',
     handle: 'the-heard-bay-rum-experience',
     productType: 'Body Care',
-    vendor: 'Seen & Heard Care',
+    vendor: 'Hubs & Babydoll',
     bodyHtml: 'A grounding, full-body experience designed for rich, masculine or unisex hydration. Utilizing classic West Indian Bay Rum botanicals, it leaves an energetic, crisp finish that keeps skin velvety and vibrant from morning to night.',
     variants: {
       price: '68.00',
@@ -32,7 +32,7 @@ const products = [
     title: 'The SEEN Jasmine & Gardenia Shield',
     handle: 'the-seen-jasmine-gardenia-shield',
     productType: 'Body Care',
-    vendor: 'Seen & Heard Care',
+    vendor: 'Hubs & Babydoll',
     bodyHtml: 'Elevate your daily routine with a sophisticated, pure floral shield. This blend locks in vital moisture all day long, draping your skin in an intoxicating, delicate floral bouquet that protects against environmental dryness.',
     variants: {
       price: '68.00',
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: 'POST to create products for Seen & Heard Care store',
+    message: 'POST to create products for Hubs & Babydoll store',
     productsToCreate: products.length,
     products: products.map((p) => ({ title: p.title, price: p.variants.price })),
   })

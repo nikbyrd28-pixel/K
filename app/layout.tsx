@@ -15,9 +15,9 @@ const cormorant = Cormorant_Garamond({
   weight: ['400', '500', '600', '700'],
 })
 
-const siteUrl = 'https://seenandheardcare.com'
-const siteName = 'Seen & Heard Care'
-const title = 'Seen & Heard Care — Body Care & Wellness Essentials'
+const siteUrl = 'https://hubsandbabydoll.com'
+const siteName = 'Hubs & Babydoll'
+const title = 'Hubs & Babydoll — Body Care & Wellness Essentials'
 const description =
   'Handcrafted body care and wellness essentials, thoughtfully curated to help the people who care for everyone else feel seen, heard, and appreciated.'
 
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     'natural skincare',
     'wellness gifts',
     'caregiver gifts',
-    'Seen & Heard Care',
+    'Hubs & Babydoll',
   ],
   authors: [{ name: siteName }],
   creator: siteName,
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
         url: '/hero.png',
         width: 1200,
         height: 1200,
-        alt: 'Seen & Heard Care body care and wellness essentials',
+        alt: 'Hubs & Babydoll body care and wellness essentials',
       },
     ],
   },

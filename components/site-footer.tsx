@@ -30,8 +30,8 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 flex flex-col items-center gap-6">
-          <Link href="/" className="relative w-20 h-20" aria-label="Seen & Heard Care home">
-            <Image src="/logo-transparent.png" alt="Seen & Heard Care" fill className="object-contain" />
+          <Link href="/" className="relative w-20 h-20" aria-label="Hubs & Babydoll home">
+            <Image src="/logo-transparent.png" alt="Hubs & Babydoll" fill className="object-contain" />
           </Link>
 
           <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
@@ -61,7 +61,7 @@ export function SiteFooter() {
                   href={process.env.NEXT_PUBLIC_INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Seen & Heard Care on Instagram"
+                  aria-label="Hubs & Babydoll on Instagram"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   <InstagramIcon className="w-5 h-5" />
@@ -72,7 +72,7 @@ export function SiteFooter() {
                   href={process.env.NEXT_PUBLIC_TIKTOK_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Seen & Heard Care on TikTok"
+                  aria-label="Hubs & Babydoll on TikTok"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   <TikTokIcon className="w-5 h-5" />
@@ -83,7 +83,7 @@ export function SiteFooter() {
                   href={process.env.NEXT_PUBLIC_FACEBOOK_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Seen & Heard Care on Facebook"
+                  aria-label="Hubs & Babydoll on Facebook"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   <FacebookIcon className="w-5 h-5" />
@@ -92,7 +92,7 @@ export function SiteFooter() {
             </div>
           )}
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
-            © 2026 Seen &amp; Heard Care · Handcrafted Excellence
+            © 2026 Hubs &amp; Babydoll · Handcrafted Excellence
           </p>
         </div>
       </div>

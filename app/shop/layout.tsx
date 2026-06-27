@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Shop',
   description:
-    'Shop handcrafted Seen & Heard Care body care, body oils, body butters, and curated wellness gift boxes.',
+    'Shop handcrafted Hubs & Babydoll body care, body oils, body butters, and curated wellness gift boxes.',
   alternates: {
     canonical: '/shop',
   },

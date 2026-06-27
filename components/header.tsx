@@ -22,11 +22,11 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center" aria-label="Seen & Heard Care home">
+          <Link href="/" className="flex items-center" aria-label="Hubs & Babydoll home">
             <div className="w-11 h-11 relative">
               <Image
                 src="/logo-transparent.png"
-                alt="Seen & Heard Care"
+                alt="Hubs & Babydoll"
                 fill
                 priority
                 sizes="44px"
