@@ -38,7 +38,7 @@ const FAQS = [
   {
     question: 'How do I hear about restocks and new products?',
     answer:
-      'Join the email list to get updates on new products, restocks, local vending dates, and exclusive offers.',
+      'Join the email list to get updates on new products, restocks, local vending dates, and exclusive offers. Your email is saved in Shopify for customer updates and marketing opt-in.'
   },
 ]
 

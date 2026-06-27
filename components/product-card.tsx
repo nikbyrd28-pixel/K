@@ -30,7 +30,7 @@ export function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <article className="group flex flex-col">
+    <article className="group flex flex-col bg-background/55 border border-border/60 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.18)] transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_28px_100px_rgba(0,0,0,0.28)]">
       <Link
         href={`/shop/${product.handle}`}
         className="relative block aspect-square overflow-hidden bg-card border border-border/60 mb-5"
@@ -66,7 +66,7 @@ export function ProductCard({ product }: { product: Product }) {
           {name}
         </h3>
       </Link>
-      <p className="text-sm text-muted-foreground mt-2 leading-relaxed text-pretty line-clamp-2 min-h-10">
+      <p className="text-sm text-muted-foreground mt-2 leading-relaxed text-pretty line-clamp-3 min-h-16">
         {description}
       </p>
 
@@ -101,9 +101,9 @@ export function ProductCard({ product }: { product: Product }) {
         <Button
           onClick={handleAdd}
           disabled={allSoldOut || sel.soldOut}
-          className="mt-4 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-11 disabled:opacity-50"
+          className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-12 disabled:opacity-50 shadow-lg shadow-primary/10"
         >
-          {allSoldOut ? 'Sold Out' : 'Add to Cart'}
+          {allSoldOut ? 'Sold Out' : 'Add to Ritual'}
         </Button>
       </div>
     </article>

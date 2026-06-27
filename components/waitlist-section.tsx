@@ -46,14 +46,14 @@ export function WaitlistSection() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="flex items-center justify-center gap-3 mb-5">
           <span className="h-px w-8 bg-primary/50" />
-          <span className="text-xs uppercase tracking-[0.3em] text-primary">Stay in the Loop</span>
+          <span className="text-xs uppercase tracking-[0.3em] text-primary">Care List</span>
           <span className="h-px w-8 bg-primary/50" />
         </div>
         <h2 className="font-serif text-4xl lg:text-5xl mb-4 text-balance">
-          Be First to Know What&apos;s Next.
+          Get Restock &amp; Ritual Notes.
         </h2>
         <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-10 text-pretty">
-          Join our list for restocks, new products, local vending dates, and exclusive offers.
+          Join the care list for restocks, product drops, local vending dates, and simple self-care notes from Hubs &amp; Babydoll.
         </p>
 
         {status === 'success' ? (
@@ -82,7 +82,7 @@ export function WaitlistSection() {
                 disabled={status === 'loading'}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-8 h-12 text-xs uppercase tracking-[0.2em] disabled:opacity-60"
               >
-                {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Notify Me'}
+                {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Join the Care List'}
               </Button>
             </form>
             {status === 'error' && (

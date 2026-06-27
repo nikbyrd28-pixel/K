@@ -101,7 +101,7 @@ export function WaitlistPopup() {
           <div className="flex items-center justify-center gap-3 mb-5">
             <span className="h-px w-8 bg-primary/50" />
             <span className="text-xs uppercase tracking-[0.3em] text-primary">
-              Stay in the Loop
+              Care List
             </span>
             <span className="h-px w-8 bg-primary/50" />
           </div>
@@ -109,10 +109,10 @@ export function WaitlistPopup() {
             id="waitlist-popup-title"
             className="font-serif text-3xl lg:text-4xl mb-4 text-balance leading-tight"
           >
-            Be First to Know What&apos;s Next.
+            Get Restock &amp; Ritual Notes.
           </h2>
           <p className="text-sm lg:text-base text-muted-foreground leading-relaxed mb-8 text-pretty">
-            Join our list for restocks, new products, local vending dates, and exclusive offers.
+            Join the care list for restocks, product drops, local vending dates, and simple self-care notes from Hubs &amp; Babydoll.
           </p>
 
           {status === 'success' ? (
@@ -144,7 +144,7 @@ export function WaitlistPopup() {
                   {status === 'loading' ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Notify Me'
+                    'Join the Care List'
                   )}
                 </Button>
               </form>

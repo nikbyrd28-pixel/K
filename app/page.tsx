@@ -30,28 +30,27 @@ function HeroSection() {
           <div className="flex items-center gap-3 mb-7">
             <span className="h-px w-8 bg-primary/50" />
             <span className="text-xs uppercase tracking-[0.3em] text-primary">
-              Body Care &amp; Wellness Essentials
+              Small-Batch Body Care &amp; Gift Rituals
             </span>
           </div>
           <h1 className="font-serif text-5xl lg:text-7xl leading-[1.04] mb-7 text-balance">
-            Give your skin the{' '}
-            <em className="text-primary italic">attention it deserves</em>
+            Self-care that makes them feel{' '}
+            <em className="text-primary italic">seen and heard</em>
           </h1>
           <p className="text-base lg:text-lg text-muted-foreground mb-9 leading-relaxed max-w-lg text-pretty">
-            Handcrafted body care and wellness essentials, thoughtfully curated to help the people
-            who care for everyone else feel seen, heard, and appreciated.
+            Gift-ready body oils, butters, and care boxes handcrafted in small batches for the people who pour into everyone else.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <Button
               size="lg"
-              render={<Link href="/shop">Shop the Collection</Link>}
+              render={<Link href="/shop">Shop Gift-Ready Care</Link>}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em]"
             />
             <Button
               size="lg"
               variant="outline"
-              render={<Link href="/about">Our Story</Link>}
+              render={<Link href="#products">See Best Sellers</Link>}
               className="rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em] border-primary/40 text-foreground hover:bg-primary/10 hover:text-foreground bg-transparent"
             />
           </div>
@@ -63,7 +62,7 @@ function HeroSection() {
               ))}
             </div>
             <span className="text-sm text-muted-foreground">
-              Loved by those who care for everyone else
+              Small-batch care boxes made for gifting, restocks, and everyday rituals
             </span>
           </div>
         </div>
@@ -147,15 +146,15 @@ function RitualSection() {
   const steps = [
     {
       title: 'Pure Botanicals',
-      copy: 'Shea, mango butter, and jojoba — never watered down, never synthetic. Just raw nourishment your skin recognizes.',
+      copy: 'Shea, mango butter, jojoba, and essential oils — never watered down, never generic. Just rich nourishment your skin recognizes.',
     },
     {
       title: 'Handcrafted Care',
-      copy: 'Blended and poured in small batches so every jar carries the intention of a true routine, not a factory line.',
+      copy: 'Blended and poured in small batches so every jar and bottle feels intentional — a real care routine, not a factory afterthought.',
     },
     {
       title: 'Lasting Radiance',
-      copy: 'Velvety, all-day hydration wrapped in therapeutic-grade scent that calms the senses from morning to night.',
+      copy: 'Soft, lasting hydration wrapped in memorable scent profiles that turn everyday body care into a ritual.'
     },
   ]
 

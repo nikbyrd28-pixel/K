@@ -17,8 +17,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'The HEARD Gift Box is a curated grooming routine that says, “I hear you. You deserve care, too.”',
     sizes: [
-      { label: '4 oz box', price: 35, soldOut: true },
-      { label: '8 oz box', price: 50 },
+      { label: '2 oz box', price: 35 },
+      { label: '4 oz box', price: 50 },
     ],
   },
   'harmony-bay-rum-body-oil': {
@@ -26,8 +26,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Harmony Bay Rum Body Oil',
     description: 'His lightweight blend of essential oils and Vitamin E with notes of Bay Rum.',
     sizes: [
-      { label: '4 oz bottle', price: 10 },
-      { label: '8 oz box', price: 20 },
+      { label: '2 oz bottle', price: 10 },
+      { label: '4 oz bottle', price: 20 },
     ],
   },
   'moment-body-butter': {
@@ -35,8 +35,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Moment Body Butter',
     description: 'Pure nourishment. No fragrance. No fuss.',
     sizes: [
-      { label: '4 oz', price: 10 },
-      { label: '8 oz', price: 20 },
+      { label: '2 oz', price: 10 },
+      { label: '4 oz', price: 20 },
     ],
   },
   'jasmine-gardenia-8-oz-body-box': {
@@ -45,8 +45,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'The SEEN Gift Box is a wellness routine that says, “I see you. You deserve care, too.”',
     sizes: [
-      { label: '4 oz box', price: 40, badge: 'Most Popular' },
-      { label: '8 oz box', price: 55 },
+      { label: '2 oz box', price: 40, badge: 'Most Popular' },
+      { label: '4 oz box', price: 55 },
     ],
   },
   'harmony-jasmine-gardenia-body-oil': {
@@ -55,8 +55,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'Her delicate blend of essential oils and Vitamin E with notes of Jasmine and Gardenia.',
     sizes: [
-      { label: '4 oz bottle', price: 15 },
-      { label: '8 oz box', price: 25 },
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
     ],
   },
   'lavender-4-oz-body-box-inside': {
@@ -65,8 +65,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
     sizes: [
-      { label: '4 oz box', price: 35 },
-      { label: '8 oz box', price: 0, soldOut: true },
+      { label: '2 oz box', price: 35 },
+      { label: '4 oz box', price: 50 },
     ],
   },
 }
