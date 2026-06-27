@@ -15,7 +15,7 @@ const cormorant = Cormorant_Garamond({
   weight: ['400', '500', '600', '700'],
 })
 
-const siteUrl = 'https://hubsandbabydoll.com'
+const siteUrl = 'https://seenandheardcare.com'
 const siteName = 'Hubs & Babydoll'
 const title = 'Hubs & Babydoll — Body Care & Wellness Essentials'
 const description =
