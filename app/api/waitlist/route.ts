@@ -8,6 +8,8 @@ const SHOPIFY_ADMIN_ACCESS_TOKEN =
 const GHL_PRIVATE_INTEGRATION_TOKEN = process.env.GHL_PRIVATE_INTEGRATION_TOKEN
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID
 const GHL_API_VERSION = "2021-07-28"
+const GOOGLE_SHEETS_WEBHOOK_URL = process.env.GOOGLE_SHEETS_WEBHOOK_URL
+const GOOGLE_SHEETS_WEBHOOK_SECRET = process.env.GOOGLE_SHEETS_WEBHOOK_SECRET
 const API_VERSION = "2026-01"
 
 const CUSTOMER_CREATE = `
@@ -188,6 +190,46 @@ async function syncGoHighLevelContact(email: string) {
   }
 }
 
+async function syncGoogleSheetsContact(email: string) {
+  if (!GOOGLE_SHEETS_WEBHOOK_URL) {
+    return { skipped: true }
+  }
+
+  try {
+    const response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify({
+        secret: GOOGLE_SHEETS_WEBHOOK_SECRET,
+        email,
+        source: "Hubs & Babydoll website care list",
+        tags: ["care-list", "waitlist", "website-signup"],
+        submittedAt: new Date().toISOString(),
+      }),
+    })
+
+    const text = await response.text().catch(() => "")
+    let result: { success?: boolean; error?: string } | null = null
+    try {
+      result = text ? JSON.parse(text) : null
+    } catch {
+      result = null
+    }
+
+    if (!response.ok || result?.success === false) {
+      console.log("[v0] Google Sheets waitlist sync warning:", text)
+      return { skipped: false, success: false }
+    }
+
+    return { skipped: false, success: true }
+  } catch (error) {
+    console.log("[v0] Google Sheets waitlist sync error:", (error as Error).message)
+    return { skipped: false, success: false }
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
@@ -197,12 +239,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 })
     }
 
+    const sheetSync = await syncGoogleSheetsContact(normalizedEmail)
+
     if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_ACCESS_TOKEN) {
       console.log("[v0] Waitlist: missing Shopify Admin credentials")
-      return NextResponse.json(
-        { error: "Signup is not configured yet. Please try again later." },
-        { status: 500 },
-      )
+      if (sheetSync.success) {
+        return NextResponse.json({ success: true, storedIn: "google-sheets" })
+      }
+
+      return NextResponse.json({ error: "Signup storage is not configured yet." }, { status: 500 })
     }
 
     const { ok, result } = await shopifyGraphQL<CustomerCreateResponse>(CUSTOMER_CREATE, {
