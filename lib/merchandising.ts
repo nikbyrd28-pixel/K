@@ -1,4 +1,10 @@
-export type Size = { label: string; price: number; soldOut?: boolean; badge?: string }
+export type Size = {
+  label: string
+  price: number
+  soldOut?: boolean
+  badge?: string
+  variantId?: string
+}
 
 export type Merch = {
   order: number
@@ -76,14 +82,59 @@ export interface ProductLike {
   title: string
   description: string
   price: string
+  variantId?: string
+  variants?: Array<{
+    id: string
+    title: string
+    price: string
+    availableForSale: boolean
+    selectedOptions?: Array<{ name: string; value: string }>
+  }>
+}
+
+function normalize(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+function variantMatchesSize(variant: NonNullable<ProductLike['variants']>[number], label: string) {
+  const labelText = normalize(label)
+  const variantText = normalize(
+    [variant.title, ...(variant.selectedOptions?.map((option) => option.value) ?? [])].join(' '),
+  )
+
+  return labelText
+    .split(' ')
+    .filter(Boolean)
+    .every((part) => variantText.includes(part))
 }
 
 // Resolve the display name, description, and purchasable sizes for a product,
 // falling back to the live Shopify values when no curated entry exists.
 export function getMerch(product: ProductLike) {
   const merch = MERCHANDISING[product.handle]
-  const sizes: Size[] =
-    merch?.sizes ?? [{ label: 'One size', price: parseFloat(product.price) || 0 }]
+  const liveVariants = product.variants ?? []
+  const sizes: Size[] = merch?.sizes
+    ? merch.sizes.map((size) => {
+        const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+
+        return {
+          ...size,
+          price: variant ? Number.parseFloat(variant.price) || size.price : size.price,
+          soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
+          variantId: variant?.id ?? product.variantId,
+        }
+      })
+    : liveVariants.length > 0
+      ? liveVariants.map((variant) => ({
+          label: variant.title === 'Default Title' ? 'One size' : variant.title,
+          price: Number.parseFloat(variant.price) || 0,
+          soldOut: !variant.availableForSale,
+          variantId: variant.id,
+        }))
+      : [{ label: 'One size', price: parseFloat(product.price) || 0, variantId: product.variantId }]
+
+  const availableSizes = sizes.filter((s) => !s.soldOut)
+
   return {
     name: merch?.name ?? product.title,
     description: merch?.description ?? product.description,
@@ -91,6 +142,6 @@ export function getMerch(product: ProductLike) {
     order: merch?.order ?? 99,
     badge: sizes.find((s) => s.badge)?.badge,
     allSoldOut: sizes.every((s) => s.soldOut),
-    fromPrice: Math.min(...sizes.filter((s) => !s.soldOut).map((s) => s.price)),
+    fromPrice: availableSizes.length > 0 ? Math.min(...availableSizes.map((s) => s.price)) : 0,
   }
 }

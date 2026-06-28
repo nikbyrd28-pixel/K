@@ -32,10 +32,16 @@ export async function GET() {
                 }
               }
             }
-            variants(first: 1) {
+            variants(first: 20) {
               edges {
                 node {
                   id
+                  title
+                  availableForSale
+                  selectedOptions {
+                    name
+                    value
+                  }
                   price {
                     amount
                     currencyCode

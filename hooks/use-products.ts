@@ -9,6 +9,16 @@ export interface Product {
   imageAlt: string
   price: string
   variantId: string
+  variants: ProductVariant[]
+}
+
+export interface ProductVariant {
+  id: string
+  title: string
+  price: string
+  currencyCode: string
+  availableForSale: boolean
+  selectedOptions: Array<{ name: string; value: string }>
 }
 
 interface ShopifyProduct {
@@ -28,6 +38,12 @@ interface ShopifyProduct {
     edges: Array<{
       node: {
         id: string
+        title: string
+        availableForSale: boolean
+        selectedOptions: Array<{
+          name: string
+          value: string
+        }>
         price: {
           amount: string
           currencyCode: string
@@ -82,6 +98,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     imageAlt: 'The SEEN Lavender Set',
     price: '58.00',
     variantId: 'gid://shopify/ProductVariant/1',
+    variants: [],
   },
   {
     id: 'gid://shopify/Product/2',
@@ -93,6 +110,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     imageAlt: 'The HEARD Bay Rum Experience',
     price: '68.00',
     variantId: 'gid://shopify/ProductVariant/2',
+    variants: [],
   },
   {
     id: 'gid://shopify/Product/3',
@@ -104,6 +122,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     imageAlt: 'The SEEN Jasmine & Gardenia Shield',
     price: '68.00',
     variantId: 'gid://shopify/ProductVariant/3',
+    variants: [],
   },
 ]
 
@@ -114,8 +133,17 @@ export function useProducts() {
     const node = edge.node
     const imageUrl = node.images?.edges?.[0]?.node?.url || ''
     const imageAlt = node.images?.edges?.[0]?.node?.altText || node.title
-    const price = node.variants?.edges?.[0]?.node?.price?.amount || '0'
-    const variantId = node.variants?.edges?.[0]?.node?.id || ''
+    const variants = node.variants?.edges?.map(({ node: variant }) => ({
+      id: variant.id,
+      title: toTitleCase(variant.title || ''),
+      price: variant.price?.amount || '0',
+      currencyCode: variant.price?.currencyCode || 'USD',
+      availableForSale: variant.availableForSale,
+      selectedOptions: variant.selectedOptions || [],
+    })) || []
+    const firstVariant = variants[0]
+    const price = firstVariant?.price || '0'
+    const variantId = firstVariant?.id || ''
 
     return {
       id: node.id,
@@ -126,6 +154,7 @@ export function useProducts() {
       imageAlt,
       price,
       variantId,
+      variants,
     }
   }) || [])
     // Only show products that have a real photo so the grid stays polished
