@@ -113,7 +113,10 @@ function variantMatchesSize(variant: NonNullable<ProductLike['variants']>[number
 export function getMerch(product: ProductLike) {
   const merch = MERCHANDISING[product.handle]
   const liveVariants = product.variants ?? []
-  const sizes: Size[] = merch?.sizes
+  const hasRealVariantOptions = liveVariants.some(
+    (variant) => variant.title && variant.title !== 'Default Title',
+  )
+  const sizes: Size[] = merch?.sizes && hasRealVariantOptions
     ? merch.sizes.map((size) => {
         const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
 
@@ -126,7 +129,7 @@ export function getMerch(product: ProductLike) {
       })
     : liveVariants.length > 0
       ? liveVariants.map((variant) => ({
-          label: variant.title === 'Default Title' ? 'One size' : variant.title,
+          label: variant.title === 'Default Title' ? 'Available size' : variant.title,
           price: Number.parseFloat(variant.price) || 0,
           soldOut: !variant.availableForSale,
           variantId: variant.id,
