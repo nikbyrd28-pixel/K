@@ -2,14 +2,35 @@
 
 /**
  * Creates product variants for Hubs & Babydoll products
- * This script needs to be run with Shopify integration configured
+ * 
+ * This script creates proper size variants (2oz, 4oz, etc.) in Shopify
+ * to fix the checkout pricing issue where different sizes were being merged.
+ * 
+ * SETUP INSTRUCTIONS:
+ * 1. Get your Shopify Admin API token from https://admin.shopify.com/settings/apps-and-integrations/develop-apps
+ * 2. Create a custom app or use an existing one with these scopes:
+ *    - write_products
+ *    - read_products
+ * 3. Copy the Admin API access token
+ * 4. Run this script with:
+ *    SHOPIFY_STORE_DOMAIN="your-store.myshopify.com" \
+ *    SHOPIFY_ADMIN_API_TOKEN="your-access-token" \
+ *    node create-variants.js
  */
 
 const shopifyDomain = process.env.SHOPIFY_STORE_DOMAIN
 const accessToken = process.env.SHOPIFY_ADMIN_API_TOKEN
 
 if (!shopifyDomain || !accessToken) {
-  console.error('Error: SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_API_TOKEN environment variables are required')
+  console.error('\n❌ ERROR: Missing required environment variables\n')
+  console.error('Usage:')
+  console.error('  SHOPIFY_STORE_DOMAIN="your-store.myshopify.com" \\')
+  console.error('  SHOPIFY_ADMIN_API_TOKEN="your-access-token" \\')
+  console.error('  node create-variants.js\n')
+  console.error('Instructions:')
+  console.error('  1. Go to https://admin.shopify.com/settings/apps-and-integrations/develop-apps')
+  console.error('  2. Create a custom app with "write_products" and "read_products" scopes')
+  console.error('  3. Copy the "Admin API access token" and use it above\n')
   process.exit(1)
 }
 
@@ -49,8 +70,13 @@ const products = [
 ]
 
 async function createVariants() {
+  console.log('\n📦 Starting Shopify variant creation...\n')
+
+  let successCount = 0
+  let errorCount = 0
+
   for (const product of products) {
-    console.log(`\nCreating variants for ${product.handle}...`)
+    process.stdout.write(`Creating variants for ${product.handle}... `)
 
     const variantInputs = product.variants.map((v) => ({
       price: v.price,
@@ -93,18 +119,40 @@ async function createVariants() {
       const data = await response.json()
 
       if (data.errors) {
-        console.error(`Error for ${product.handle}:`, data.errors)
-      } else if (data.data.productVariantsBulkCreate.userErrors.length > 0) {
-        console.error(`User errors for ${product.handle}:`, data.data.productVariantsBulkCreate.userErrors)
-      } else {
-        console.log(`✓ Created ${data.data.productVariantsBulkCreate.productVariants.length} variants`)
-        data.data.productVariantsBulkCreate.productVariants.forEach((v) => {
-          console.log(`  - ${v.title}: $${v.price} (${v.sku}) [${v.id}]`)
+        console.log('❌ FAILED')
+        console.error(`   GraphQL Error:`, data.errors)
+        errorCount++
+      } else if (data.data?.productVariantsBulkCreate?.userErrors?.length > 0) {
+        console.log('❌ FAILED')
+        const errors = data.data.productVariantsBulkCreate.userErrors
+        errors.forEach((err) => {
+          console.error(`   ${err.field}: ${err.message}`)
         })
+        errorCount++
+      } else {
+        const variants = data.data?.productVariantsBulkCreate?.productVariants || []
+        console.log(`✅ SUCCESS (${variants.length} variants)`)
+        variants.forEach((v) => {
+          console.log(`   📍 ${v.title}: $${v.price} (${v.sku})`)
+        })
+        successCount++
       }
     } catch (error) {
-      console.error(`Error creating variants for ${product.handle}:`, error.message)
+      console.log('❌ FAILED')
+      console.error(`   Network Error: ${error.message}`)
+      errorCount++
     }
+  }
+
+  console.log(`\n📊 Summary: ${successCount} successful, ${errorCount} failed\n`)
+
+  if (successCount === products.length) {
+    console.log('✨ All variants created successfully!')
+    console.log('🎉 Checkout pricing should now work correctly with different sizes!\n')
+    process.exit(0)
+  } else if (errorCount > 0) {
+    console.log('⚠️  Some variants failed. Please check the errors above.\n')
+    process.exit(1)
   }
 }
 
