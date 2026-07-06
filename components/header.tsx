@@ -22,7 +22,7 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center" aria-label="Hubs & Babydoll home">
+          <Link href="/" className="flex items-center transition-opacity duration-200 hover:opacity-80" aria-label="Hubs & Babydoll home">
             <div className="w-11 h-11 relative">
               <Image
                 src="/logo-transparent.png"
@@ -51,7 +51,7 @@ export function Header() {
                 </Link>
               )
             })}
-            <button onClick={openCart} className="relative" aria-label="Open shopping cart">
+            <button onClick={openCart} className="relative transition-all duration-200 hover:text-primary hover:scale-110 active:scale-95" aria-label="Open shopping cart">
               <ShoppingCart className="w-[18px] h-[18px] text-foreground" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold">
@@ -63,7 +63,7 @@ export function Header() {
 
           {/* Mobile controls */}
           <div className="flex items-center gap-5 sm:hidden">
-            <button onClick={openCart} className="relative" aria-label="Open shopping cart">
+            <button onClick={openCart} className="relative transition-all duration-200 hover:text-primary hover:scale-110 active:scale-95" aria-label="Open shopping cart">
               <ShoppingCart className="w-5 h-5 text-foreground" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold">
@@ -75,6 +75,7 @@ export function Header() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
+              className="transition-all duration-200 hover:text-primary active:scale-95"
             >
               {menuOpen ? (
                 <X className="w-6 h-6 text-foreground" />
