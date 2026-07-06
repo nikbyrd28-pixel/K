@@ -32,8 +32,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Harmony Bay Rum Body Oil',
     description: 'His lightweight blend of essential oils and Vitamin E with notes of Bay Rum.',
     sizes: [
-      { label: '4 oz bottle', price: 15 },
-      { label: '8 oz bottle', price: 25 },
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
     ],
   },
   'moment-body-butter': {
@@ -41,8 +41,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Moment Body Butter',
     description: 'Pure nourishment. No fragrance. No fuss.',
     sizes: [
-      { label: '4 oz', price: 10 },
-      { label: '8 oz', price: 20 },
+      { label: '2 oz', price: 10 },
+      { label: '4 oz', price: 20 },
     ],
   },
   'jasmine-gardenia-8-oz-body-box': {
@@ -71,7 +71,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
     sizes: [
-      { label: 'One size', price: 40 },
+      { label: '2 oz box', price: 40 },
     ],
   },
 }
