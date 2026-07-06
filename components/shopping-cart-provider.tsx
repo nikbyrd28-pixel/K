@@ -51,7 +51,6 @@ export function ShoppingCartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item]
     })
-    setIsOpen(true)
   }
 
   const removeFromCart = (id: string) => {

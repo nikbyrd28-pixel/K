@@ -68,7 +68,6 @@ export default function ProductDetailPage() {
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
-    openCart()
   }
 
   const related = products.filter((p) => p.handle !== product.handle).slice(0, 3)
