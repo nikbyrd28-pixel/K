@@ -21,10 +21,129 @@ export const MERCHANDISING: Record<string, Merch> = {
     order: 1,
     name: 'HEARD Bay Rum Box',
     description:
-      'The HEARD Gift Box is a curated grooming routine that says, “I hear you. You deserve care, too.”',
+      'For the man who carries a lot and rarely asks for anything in return. The HEARD Gift Box is a curated grooming ritual.',
     sizes: [
-      { label: '2 oz box', price: 35 },
-      { label: '4 oz box', price: 50 },
+      { label: 'One size', price: 50 },
+    ],
+  },
+  'harmony-bay-rum-body-oil': {
+    order: 2,
+    name: 'Harmony Bay Rum Body Oil',
+    description: 'A lightweight blend of jojoba, sweet almond, flaxseed, castor oils, and Vitamin E with notes of Bay Rum.',
+    sizes: [
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
+    ],
+  },
+  'moment-body-butter': {
+    order: 3,
+    name: 'Moment Body Butter',
+    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
+    sizes: [
+      { label: '2 oz', price: 10 },
+      { label: '4 oz', price: 20 },
+    ],
+  },
+  'jasmine-gardenia-8-oz-body-box': {
+    order: 4,
+    name: 'SEEN Jasmine & Gardenia Box',
+    description:
+      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
+    sizes: [
+      { label: 'One size', price: 50 },
+    ],
+  },
+  'harmony-jasmine-gardenia-body-oil': {
+    order: 5,
+    name: 'Harmony Jasmine Gardenia Body Oil',
+    description:
+      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
+    sizes: [
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
+    ],
+  },
+  'lavender-4-oz-body-box-inside': {
+    order: 6,
+    name: 'SEEN Lavender Box',
+    description:
+      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
+    sizes: [
+      { label: 'One size', price: 40 },
+    ],
+  },
+  'moment-body-butter': {
+    order: 3,
+    name: 'Moment Body Butter',
+    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
+    sizes: [
+      { label: '2 oz', price: 10 },
+      { label: '4 oz', price: 20 },
+    ],
+  },
+  'jasmine-gardenia-8-oz-body-box': {
+    order: 4,
+    name: 'SEEN Jasmine & Gardenia Box',
+    description:
+      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
+    sizes: [
+      { label: 'One size', price: 50 },
+    ],
+  },
+  'harmony-jasmine-gardenia-body-oil': {
+    order: 5,
+    name: 'Harmony Jasmine Gardenia Body Oil',
+    description:
+      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
+    sizes: [
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
+    ],
+  },
+  'lavender-4-oz-body-box-inside': {
+    order: 6,
+    name: 'SEEN Lavender Box',
+    description:
+      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
+    sizes: [
+      { label: 'One size', price: 40 },
+    ],
+  },
+  'moment-body-butter': {
+    order: 3,
+    name: 'Moment Body Butter',
+    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
+    sizes: [
+      { label: '4 oz', price: 10 },
+      { label: '8 oz', price: 20 },
+    ],
+  },
+  'jasmine-gardenia-8-oz-body-box': {
+    order: 4,
+    name: 'SEEN Jasmine & Gardenia Box',
+    description:
+      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
+    sizes: [
+      { label: 'One size', price: 50 },
+    ],
+  },
+  'harmony-jasmine-gardenia-body-oil': {
+    order: 5,
+    name: 'Harmony Jasmine Gardenia Body Oil',
+    description:
+      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
+    sizes: [
+      { label: '4 oz bottle', price: 15 },
+      { label: '8 oz bottle', price: 25 },
+    ],
+  },
+  'lavender-4-oz-body-box-inside': {
+    order: 6,
+    name: 'SEEN Lavender Box',
+    description:
+      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
+    sizes: [
+      { label: 'One size', price: 40 },
     ],
   },
   'harmony-bay-rum-body-oil': {
@@ -32,8 +151,8 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Harmony Bay Rum Body Oil',
     description: 'His lightweight blend of essential oils and Vitamin E with notes of Bay Rum.',
     sizes: [
-      { label: '2 oz bottle', price: 10 },
-      { label: '4 oz bottle', price: 20 },
+      { label: '2 oz bottle', price: 15 },
+      { label: '4 oz bottle', price: 25 },
     ],
   },
   'moment-body-butter': {
@@ -71,8 +190,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
     sizes: [
-      { label: '2 oz box', price: 35 },
-      { label: '4 oz box', price: 50 },
+      { label: '2 oz box', price: 40 },
     ],
   },
 }
@@ -116,7 +234,11 @@ export function getMerch(product: ProductLike) {
   const hasRealVariantOptions = liveVariants.some(
     (variant) => variant.title && variant.title !== 'Default Title',
   )
-  const sizes: Size[] = merch?.sizes && hasRealVariantOptions
+
+  // Always prefer curated sizes if they exist, regardless of Shopify variant titles.
+  // Only fall back to Shopify variants if there's no merchandising entry AND
+  // Shopify has real variant options (not just "Default Title").
+  const sizes: Size[] = merch?.sizes
     ? merch.sizes.map((size) => {
         const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
 
@@ -127,7 +249,7 @@ export function getMerch(product: ProductLike) {
           variantId: variant?.id ?? product.variantId,
         }
       })
-    : liveVariants.length > 0
+    : liveVariants.length > 0 && hasRealVariantOptions
       ? liveVariants.map((variant) => ({
           label: variant.title === 'Default Title' ? 'Available size' : variant.title,
           price: Number.parseFloat(variant.price) || 0,

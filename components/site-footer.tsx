@@ -23,14 +23,14 @@ export function SiteFooter() {
           <Button
             size="lg"
             render={<Link href="/shop">Shop the Collection</Link>}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-10 h-12 text-xs uppercase tracking-[0.2em]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-10 h-12 text-xs uppercase tracking-[0.2em] shadow-lg shadow-primary/10 transition-all duration-200 hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
           />
         </div>
       </section>
 
       <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 flex flex-col items-center gap-6">
-          <Link href="/" className="relative w-20 h-20" aria-label="Hubs & Babydoll home">
+          <Link href="/" className="relative w-20 h-20 transition-all duration-300 hover:opacity-70 hover:scale-110" aria-label="Hubs & Babydoll home">
             <Image src="/logo-transparent.png" alt="Hubs & Babydoll" fill className="object-contain" />
           </Link>
 
@@ -62,7 +62,7 @@ export function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Hubs & Babydoll on Instagram"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
                 >
                   <InstagramIcon className="w-5 h-5" />
                 </a>
@@ -73,7 +73,7 @@ export function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Hubs & Babydoll on TikTok"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
                 >
                   <TikTokIcon className="w-5 h-5" />
                 </a>
@@ -84,7 +84,7 @@ export function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Hubs & Babydoll on Facebook"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
                 >
                   <FacebookIcon className="w-5 h-5" />
                 </a>

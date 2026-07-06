@@ -33,7 +33,7 @@ export function ProductCard({ product }: { product: Product }) {
     <article className="group flex flex-col bg-background/55 border border-border/60 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.18)] transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_28px_100px_rgba(0,0,0,0.28)]">
       <Link
         href={`/shop/${product.handle}`}
-        className="relative block aspect-square overflow-hidden bg-card border border-border/60 mb-5"
+        className="relative block aspect-square overflow-hidden bg-card border border-border/60 mb-5 shadow-md group-hover:shadow-lg transition-shadow duration-300"
         aria-label={`View ${name}`}
       >
         {product.image ? (
@@ -41,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
             src={product.image}
             alt={product.imageAlt || name}
             fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
@@ -101,7 +101,7 @@ export function ProductCard({ product }: { product: Product }) {
         <Button
           onClick={handleAdd}
           disabled={allSoldOut || sel.soldOut}
-          className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-12 disabled:opacity-50 shadow-lg shadow-primary/10"
+          className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-12 disabled:opacity-50 shadow-lg shadow-primary/10 transition-all duration-200 hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
         >
           {allSoldOut ? 'Sold Out' : 'Add to Routine'}
         </Button>
