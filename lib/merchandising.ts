@@ -120,14 +120,25 @@ export function getMerch(product: ProductLike) {
   // Shopify has real variant options (not just "Default Title").
   const sizes: Size[] = merch?.sizes
     ? merch.sizes.map((size) => {
-        const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+        // If merchandising has explicit variantId, check if it exists in Shopify
+        let variant = undefined
+        if (size.variantId) {
+          variant = liveVariants.find((v) => v.id === size.variantId)
+          // If the explicit variantId doesn't exist in Shopify, try to match by label instead
+          if (!variant) {
+            variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+          }
+        } else {
+          // No explicit ID, try to match by label
+          variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+        }
 
         return {
           ...size,
           // Always use Shopify variant price if available, fall back to merchandising price
           price: variant ? Number.parseFloat(variant.price) : size.price,
           soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
-          // Use matched variant ID if found, otherwise fall back to product variant ID
+          // Use the found variant's ID, otherwise fall back to product variant ID
           variantId: variant?.id || product.variantId,
         }
       })
