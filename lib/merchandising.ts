@@ -124,9 +124,11 @@ export function getMerch(product: ProductLike) {
 
         return {
           ...size,
-          price: variant ? Number.parseFloat(variant.price) || size.price : size.price,
+          // Always use Shopify variant price if available, fall back to merchandising price
+          price: variant ? Number.parseFloat(variant.price) : size.price,
           soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
-          variantId: variant?.id ?? product.variantId,
+          // Use matched variant ID if found, otherwise fall back to product variant ID
+          variantId: variant?.id || product.variantId,
         }
       })
     : liveVariants.length > 0 && hasRealVariantOptions
