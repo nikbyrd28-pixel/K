@@ -48,127 +48,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     order: 4,
     name: 'SEEN Jasmine & Gardenia Box',
     description:
-      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
-    sizes: [
-      { label: 'One size', price: 50 },
-    ],
-  },
-  'harmony-jasmine-gardenia-body-oil': {
-    order: 5,
-    name: 'Harmony Jasmine Gardenia Body Oil',
-    description:
-      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
-    sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
-    ],
-  },
-  'lavender-4-oz-body-box-inside': {
-    order: 6,
-    name: 'SEEN Lavender Box',
-    description:
-      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
-    sizes: [
-      { label: 'One size', price: 40 },
-    ],
-  },
-  'moment-body-butter': {
-    order: 3,
-    name: 'Moment Body Butter',
-    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
-    sizes: [
-      { label: '2 oz', price: 10 },
-      { label: '4 oz', price: 20 },
-    ],
-  },
-  'jasmine-gardenia-8-oz-body-box': {
-    order: 4,
-    name: 'SEEN Jasmine & Gardenia Box',
-    description:
-      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
-    sizes: [
-      { label: 'One size', price: 50 },
-    ],
-  },
-  'harmony-jasmine-gardenia-body-oil': {
-    order: 5,
-    name: 'Harmony Jasmine Gardenia Body Oil',
-    description:
-      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
-    sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
-    ],
-  },
-  'lavender-4-oz-body-box-inside': {
-    order: 6,
-    name: 'SEEN Lavender Box',
-    description:
-      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
-    sizes: [
-      { label: 'One size', price: 40 },
-    ],
-  },
-  'moment-body-butter': {
-    order: 3,
-    name: 'Moment Body Butter',
-    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
-    sizes: [
-      { label: '4 oz', price: 10 },
-      { label: '8 oz', price: 20 },
-    ],
-  },
-  'jasmine-gardenia-8-oz-body-box': {
-    order: 4,
-    name: 'SEEN Jasmine & Gardenia Box',
-    description:
-      'For the woman who deserves to feel SEEN. This curated gift box is a reminder that she is worthy of care.',
-    sizes: [
-      { label: 'One size', price: 50 },
-    ],
-  },
-  'harmony-jasmine-gardenia-body-oil': {
-    order: 5,
-    name: 'Harmony Jasmine Gardenia Body Oil',
-    description:
-      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
-    sizes: [
-      { label: '4 oz bottle', price: 15 },
-      { label: '8 oz bottle', price: 25 },
-    ],
-  },
-  'lavender-4-oz-body-box-inside': {
-    order: 6,
-    name: 'SEEN Lavender Box',
-    description:
-      'For the woman who gives so much of herself to others, SEEN Lavender is a gentle reminder to slow down, breathe deeply, and pour a little of that love back into herself.',
-    sizes: [
-      { label: 'One size', price: 40 },
-    ],
-  },
-  'harmony-bay-rum-body-oil': {
-    order: 2,
-    name: 'Harmony Bay Rum Body Oil',
-    description: 'His lightweight blend of essential oils and Vitamin E with notes of Bay Rum.',
-    sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
-    ],
-  },
-  'moment-body-butter': {
-    order: 3,
-    name: 'Moment Body Butter',
-    description: 'Pure nourishment. No fragrance. No fuss.',
-    sizes: [
-      { label: '2 oz', price: 10 },
-      { label: '4 oz', price: 20 },
-    ],
-  },
-  'jasmine-gardenia-8-oz-body-box': {
-    order: 4,
-    name: 'SEEN Jasmine & Gardenia Box',
-    description:
-      'The SEEN Gift Box is a wellness routine that says, “I see you. You deserve care, too.”',
+      'The SEEN Gift Box is a wellness routine that says, "I see you. You deserve care, too."',
     sizes: [
       { label: '2 oz box', price: 40, badge: 'Most Popular' },
       { label: '4 oz box', price: 55 },
@@ -178,7 +58,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     order: 5,
     name: 'Harmony Jasmine Gardenia Body Oil',
     description:
-      'Her delicate blend of essential oils and Vitamin E with notes of Jasmine and Gardenia.',
+      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
     sizes: [
       { label: '2 oz bottle', price: 15 },
       { label: '4 oz bottle', price: 25 },
