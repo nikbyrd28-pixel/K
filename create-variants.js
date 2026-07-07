@@ -19,13 +19,13 @@
  */
 
 const shopifyDomain = process.env.SHOPIFY_STORE_DOMAIN
-const accessToken = process.env.SHOPIFY_ADMIN_API_TOKEN
+const accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN
 
 if (!shopifyDomain || !accessToken) {
   console.error('\n❌ ERROR: Missing required environment variables\n')
   console.error('Usage:')
   console.error('  SHOPIFY_STORE_DOMAIN="your-store.myshopify.com" \\')
-  console.error('  SHOPIFY_ADMIN_API_TOKEN="your-access-token" \\')
+  console.error('  SHOPIFY_ADMIN_ACCESS_TOKEN="your-access-token" \\')
   console.error('  node create-variants.js\n')
   console.error('Instructions:')
   console.error('  1. Go to https://admin.shopify.com/settings/apps-and-integrations/develop-apps')
