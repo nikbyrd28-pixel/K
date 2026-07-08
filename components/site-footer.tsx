@@ -31,7 +31,7 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 flex flex-col items-center gap-6">
           <Link href="/" className="relative w-20 h-20 transition-all duration-300 hover:opacity-70 hover:scale-110" aria-label="Hubs & Babydoll home">
-            <Image src="/logo-transparent.png" alt="Hubs & Babydoll" fill className="object-contain" />
+            <Image src="/logo-transparent.png" alt="Hubs & Babydoll" fill sizes="80px" loading="eager" className="object-contain" />
           </Link>
 
           <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">

@@ -9,33 +9,9 @@ import { useShoppingCart } from '@/components/shopping-cart-provider'
 import { getMerch } from '@/lib/merchandising'
 import type { Product } from '@/hooks/use-products'
 
-export function ProductCard({
-  product,
-  sizeLabel,
-  sizePrice,
-}: {
-  product: Product
-  sizeLabel?: string
-  sizePrice?: number
-}) {
+export function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useShoppingCart()
-  const merch = getMerch(product)
-  const { name, description, badge, allSoldOut } = merch
-
-  // When this card represents a single split-out size, show that size's own
-  // price but keep the real Shopify variant so checkout resolves correctly.
-  const realSize = merch.sizes[0]
-  const sizes = sizeLabel
-    ? [
-        {
-          label: sizeLabel,
-          price: sizePrice ?? realSize?.price ?? 0,
-          variantId: realSize?.variantId,
-          soldOut: realSize?.soldOut,
-        },
-      ]
-    : merch.sizes
-  const heading = sizeLabel ? `${name} — ${sizeLabel}` : name
+  const { name, description, sizes, badge, allSoldOut } = getMerch(product)
 
   const firstAvailable = sizes.findIndex((s) => !s.soldOut)
   const [selected, setSelected] = useState(firstAvailable === -1 ? 0 : firstAvailable)
@@ -58,7 +34,7 @@ export function ProductCard({
       <Link
         href={`/shop/${product.handle}`}
         className="relative block aspect-square overflow-hidden bg-card border border-border/60 mb-5 shadow-md group-hover:shadow-lg transition-shadow duration-300"
-        aria-label={`View ${heading}`}
+        aria-label={`View ${name}`}
       >
         {product.image ? (
           <Image
@@ -87,7 +63,7 @@ export function ProductCard({
 
       <Link href={`/shop/${product.handle}`}>
         <h3 className="font-serif text-xl lg:text-2xl leading-snug group-hover:text-primary transition-colors text-balance">
-          {heading}
+          {name}
         </h3>
       </Link>
       <p className="text-sm text-muted-foreground mt-2 leading-relaxed text-pretty line-clamp-3 min-h-16">

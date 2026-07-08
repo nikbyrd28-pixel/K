@@ -12,10 +12,6 @@ export type Merch = {
   description: string
   sizes: Size[]
   ingredients?: string
-  // When set, the product is shown as multiple separate listing cards (one per
-  // entry), each with its own size label and price. All listings still map to
-  // the same real Shopify variant, so checkout uses that variant's price.
-  splitSizes?: { label: string; price: number }[]
 }
 
 // Curated merchandising (names, short copy, ounce pricing, badges, order) keyed by
@@ -27,7 +23,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'For the man who carries a lot and rarely asks for anything in return. The HEARD Gift Box is a curated grooming ritual.',
     sizes: [
-      { label: 'One size', price: 50 },
+      { label: '8 oz box', price: 50 },
     ],
   },
   'harmony-bay-rum-body-oil': {
@@ -35,11 +31,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Harmony Bay Rum Body Oil',
     description: 'A lightweight blend of jojoba, sweet almond, flaxseed, castor oils, and Vitamin E with notes of Bay Rum.',
     sizes: [
-      { label: 'One size', price: 15 },
-    ],
-    splitSizes: [
-      { label: '2 oz', price: 15 },
-      { label: '4 oz', price: 25 },
+      { label: '4 oz bottle', price: 15 },
     ],
   },
   'moment-body-butter': {
@@ -47,11 +39,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Moment Body Butter',
     description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
     sizes: [
-      { label: 'One size', price: 20 },
-    ],
-    splitSizes: [
-      { label: '2 oz', price: 10 },
-      { label: '4 oz', price: 20 },
+      { label: '4 oz jar', price: 20 },
     ],
   },
   'jasmine-gardenia-8-oz-body-box': {
@@ -60,11 +48,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'The SEEN Gift Box is a wellness routine that says, "I see you. You deserve care, too."',
     sizes: [
-      { label: 'One size', price: 25, badge: 'Most Popular' },
-    ],
-    splitSizes: [
-      { label: '2 oz box', price: 40 },
-      { label: '4 oz box', price: 55 },
+      { label: '8 oz box', price: 25, badge: 'Most Popular' },
     ],
   },
   'harmony-jasmine-gardenia-body-oil': {
@@ -73,11 +57,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
     sizes: [
-      { label: 'One size', price: 15 },
-    ],
-    splitSizes: [
-      { label: '2 oz', price: 15 },
-      { label: '4 oz', price: 25 },
+      { label: '4 oz bottle', price: 15 },
     ],
   },
   'lavender-4-oz-body-box-inside': {
@@ -86,7 +66,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
     sizes: [
-      { label: 'One size', price: 40 },
+      { label: '4 oz box', price: 40 },
     ],
   },
 }
@@ -171,17 +151,4 @@ export function getMerch(product: ProductLike) {
     allSoldOut: sizes.every((s) => s.soldOut),
     fromPrice: availableSizes.length > 0 ? Math.min(...availableSizes.map((s) => s.price)) : 0,
   }
-}
-
-// Expand a single product into one or more listing cards. Products with
-// `splitSizes` become several separate listings, each with its own size label
-// and price, all mapping to the same real Shopify variant.
-export function getListings(
-  product: ProductLike,
-): Array<{ sizeLabel?: string; sizePrice?: number }> {
-  const merch = MERCHANDISING[product.handle]
-  if (merch?.splitSizes && merch.splitSizes.length > 0) {
-    return merch.splitSizes.map((s) => ({ sizeLabel: s.label, sizePrice: s.price }))
-  }
-  return [{}]
 }

@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
 import { useProducts } from '@/hooks/use-products'
-import { getListings } from '@/lib/merchandising'
 
 export default function ShopPage() {
   const { products, isLoading, error } = useProducts()
@@ -55,16 +54,9 @@ export default function ShopPage() {
 
           {!isLoading && !error && ordered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
-              {ordered.flatMap((product) =>
-                getListings(product).map((listing, i) => (
-                  <ProductCard
-                    key={`${product.id}-${listing.sizeLabel ?? i}`}
-                    product={product}
-                    sizeLabel={listing.sizeLabel}
-                    sizePrice={listing.sizePrice}
-                  />
-                )),
-              )}
+              {ordered.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
           )}
 
