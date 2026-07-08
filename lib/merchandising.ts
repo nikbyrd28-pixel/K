@@ -48,7 +48,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'The SEEN Gift Box is a wellness routine that says, "I see you. You deserve care, too."',
     sizes: [
-      { label: '8 oz box', price: 25, badge: 'Most Popular' },
+      { label: '4 oz box', price: 25, badge: 'Most Popular' },
     ],
   },
   'harmony-jasmine-gardenia-body-oil': {
