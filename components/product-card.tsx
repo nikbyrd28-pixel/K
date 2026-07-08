@@ -9,19 +9,27 @@ import { useShoppingCart } from '@/components/shopping-cart-provider'
 import { getMerch } from '@/lib/merchandising'
 import type { Product } from '@/hooks/use-products'
 
-export function ProductCard({ product, sizeLabel }: { product: Product; sizeLabel?: string }) {
+export function ProductCard({
+  product,
+  sizeLabel,
+  sizePrice,
+}: {
+  product: Product
+  sizeLabel?: string
+  sizePrice?: number
+}) {
   const { addToCart } = useShoppingCart()
   const merch = getMerch(product)
   const { name, description, badge, allSoldOut } = merch
 
-  // When this card represents a single split-out size, force one size button
-  // that reuses the real Shopify variant/price so checkout still matches.
+  // When this card represents a single split-out size, show that size's own
+  // price but keep the real Shopify variant so checkout resolves correctly.
   const realSize = merch.sizes[0]
   const sizes = sizeLabel
     ? [
         {
           label: sizeLabel,
-          price: realSize?.price ?? 0,
+          price: sizePrice ?? realSize?.price ?? 0,
           variantId: realSize?.variantId,
           soldOut: realSize?.soldOut,
         },

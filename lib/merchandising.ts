@@ -13,9 +13,9 @@ export type Merch = {
   sizes: Size[]
   ingredients?: string
   // When set, the product is shown as multiple separate listing cards (one per
-  // label). All listings share the same real Shopify variant/price so checkout
-  // still matches exactly.
-  splitSizes?: string[]
+  // entry), each with its own size label and price. All listings still map to
+  // the same real Shopify variant, so checkout uses that variant's price.
+  splitSizes?: { label: string; price: number }[]
 }
 
 // Curated merchandising (names, short copy, ounce pricing, badges, order) keyed by
@@ -37,7 +37,10 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 15 },
     ],
-    splitSizes: ['2 oz', '4 oz'],
+    splitSizes: [
+      { label: '2 oz', price: 15 },
+      { label: '4 oz', price: 25 },
+    ],
   },
   'moment-body-butter': {
     order: 3,
@@ -46,7 +49,10 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 20 },
     ],
-    splitSizes: ['2 oz', '4 oz'],
+    splitSizes: [
+      { label: '2 oz', price: 10 },
+      { label: '4 oz', price: 20 },
+    ],
   },
   'jasmine-gardenia-8-oz-body-box': {
     order: 4,
@@ -56,7 +62,10 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 25, badge: 'Most Popular' },
     ],
-    splitSizes: ['2 oz box', '4 oz box'],
+    splitSizes: [
+      { label: '2 oz box', price: 40 },
+      { label: '4 oz box', price: 55 },
+    ],
   },
   'harmony-jasmine-gardenia-body-oil': {
     order: 5,
@@ -66,7 +75,10 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 15 },
     ],
-    splitSizes: ['2 oz', '4 oz'],
+    splitSizes: [
+      { label: '2 oz', price: 15 },
+      { label: '4 oz', price: 25 },
+    ],
   },
   'lavender-4-oz-body-box-inside': {
     order: 6,
@@ -162,12 +174,14 @@ export function getMerch(product: ProductLike) {
 }
 
 // Expand a single product into one or more listing cards. Products with
-// `splitSizes` become several separate listings (each with its own size label)
-// that all share the same real Shopify variant/price.
-export function getListings(product: ProductLike): Array<{ sizeLabel?: string }> {
+// `splitSizes` become several separate listings, each with its own size label
+// and price, all mapping to the same real Shopify variant.
+export function getListings(
+  product: ProductLike,
+): Array<{ sizeLabel?: string; sizePrice?: number }> {
   const merch = MERCHANDISING[product.handle]
   if (merch?.splitSizes && merch.splitSizes.length > 0) {
-    return merch.splitSizes.map((sizeLabel) => ({ sizeLabel }))
+    return merch.splitSizes.map((s) => ({ sizeLabel: s.label, sizePrice: s.price }))
   }
   return [{}]
 }

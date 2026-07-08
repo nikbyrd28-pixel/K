@@ -61,6 +61,7 @@ export default function ShopPage() {
                     key={`${product.id}-${listing.sizeLabel ?? i}`}
                     product={product}
                     sizeLabel={listing.sizeLabel}
+                    sizePrice={listing.sizePrice}
                   />
                 )),
               )}

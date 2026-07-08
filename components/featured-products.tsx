@@ -45,7 +45,12 @@ export function FeaturedProducts() {
         {!isLoading && !error && featured.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
             {featured.map((product) => (
-              <ProductCard key={product.id} product={product} sizeLabel={getListings(product)[0].sizeLabel} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                sizeLabel={getListings(product)[0].sizeLabel}
+                sizePrice={getListings(product)[0].sizePrice}
+              />
             ))}
           </div>
         )}
