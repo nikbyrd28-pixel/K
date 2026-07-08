@@ -12,6 +12,10 @@ export type Merch = {
   description: string
   sizes: Size[]
   ingredients?: string
+  // When set, the product is shown as multiple separate listing cards (one per
+  // label). All listings share the same real Shopify variant/price so checkout
+  // still matches exactly.
+  splitSizes?: string[]
 }
 
 // Curated merchandising (names, short copy, ounce pricing, badges, order) keyed by
@@ -33,6 +37,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 15 },
     ],
+    splitSizes: ['2 oz', '4 oz'],
   },
   'moment-body-butter': {
     order: 3,
@@ -41,6 +46,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 20 },
     ],
+    splitSizes: ['2 oz', '4 oz'],
   },
   'jasmine-gardenia-8-oz-body-box': {
     order: 4,
@@ -50,6 +56,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 25, badge: 'Most Popular' },
     ],
+    splitSizes: ['2 oz box', '4 oz box'],
   },
   'harmony-jasmine-gardenia-body-oil': {
     order: 5,
@@ -59,6 +66,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     sizes: [
       { label: 'One size', price: 15 },
     ],
+    splitSizes: ['2 oz', '4 oz'],
   },
   'lavender-4-oz-body-box-inside': {
     order: 6,
@@ -151,4 +159,15 @@ export function getMerch(product: ProductLike) {
     allSoldOut: sizes.every((s) => s.soldOut),
     fromPrice: availableSizes.length > 0 ? Math.min(...availableSizes.map((s) => s.price)) : 0,
   }
+}
+
+// Expand a single product into one or more listing cards. Products with
+// `splitSizes` become several separate listings (each with its own size label)
+// that all share the same real Shopify variant/price.
+export function getListings(product: ProductLike): Array<{ sizeLabel?: string }> {
+  const merch = MERCHANDISING[product.handle]
+  if (merch?.splitSizes && merch.splitSizes.length > 0) {
+    return merch.splitSizes.map((sizeLabel) => ({ sizeLabel }))
+  }
+  return [{}]
 }

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
 import { useProducts } from '@/hooks/use-products'
+import { getListings } from '@/lib/merchandising'
 
 export function FeaturedProducts() {
   const { products, isLoading, error } = useProducts()
@@ -44,7 +45,7 @@ export function FeaturedProducts() {
         {!isLoading && !error && featured.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
             {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} sizeLabel={getListings(product)[0].sizeLabel} />
             ))}
           </div>
         )}
