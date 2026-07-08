@@ -31,8 +31,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Harmony Bay Rum Body Oil',
     description: 'A lightweight blend of jojoba, sweet almond, flaxseed, castor oils, and Vitamin E with notes of Bay Rum.',
     sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
+      { label: 'One size', price: 15 },
     ],
   },
   'moment-body-butter': {
@@ -40,8 +39,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     name: 'Moment Body Butter',
     description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
     sizes: [
-      { label: '2 oz', price: 10 },
-      { label: '4 oz', price: 20 },
+      { label: 'One size', price: 20 },
     ],
   },
   'jasmine-gardenia-8-oz-body-box': {
@@ -50,8 +48,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'The SEEN Gift Box is a wellness routine that says, "I see you. You deserve care, too."',
     sizes: [
-      { label: '2 oz box', price: 40, badge: 'Most Popular' },
-      { label: '4 oz box', price: 55 },
+      { label: 'One size', price: 25, badge: 'Most Popular' },
     ],
   },
   'harmony-jasmine-gardenia-body-oil': {
@@ -60,8 +57,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
     sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
+      { label: 'One size', price: 15 },
     ],
   },
   'lavender-4-oz-body-box-inside': {
@@ -70,7 +66,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     description:
       'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
     sizes: [
-      { label: '2 oz box', price: 40 },
+      { label: 'One size', price: 40 },
     ],
   },
 }
@@ -121,12 +117,18 @@ export function getMerch(product: ProductLike) {
   const sizes: Size[] = merch?.sizes
     ? merch.sizes.map((size) => {
         const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+        // For single-size products, always bind to the one real Shopify variant so
+        // the displayed/cart price matches checkout exactly.
+        const singleVariant =
+          !variant && merch.sizes.length === 1 && liveVariants.length === 1 ? liveVariants[0] : undefined
+        const resolvedVariant = variant ?? singleVariant
+        const livePrice = resolvedVariant ? Number.parseFloat(resolvedVariant.price) : NaN
 
         return {
           ...size,
-          price: variant ? Number.parseFloat(variant.price) || size.price : size.price,
-          soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
-          variantId: variant?.id ?? product.variantId,
+          price: Number.isNaN(livePrice) ? size.price : livePrice,
+          soldOut: size.soldOut || (resolvedVariant ? !resolvedVariant.availableForSale : !product.variantId),
+          variantId: resolvedVariant?.id ?? product.variantId,
         }
       })
     : liveVariants.length > 0 && hasRealVariantOptions
