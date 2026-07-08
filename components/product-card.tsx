@@ -20,7 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
   const handleAdd = () => {
     if (sel.soldOut) return
     addToCart({
-      id: sel.variantId ?? `${product.id}-${sel.label}`,
+      id: `${product.id}-${sel.label}`,
       variantId: sel.variantId ?? product.variantId,
       title: `${name} — ${sel.label}`,
       price: sel.price,

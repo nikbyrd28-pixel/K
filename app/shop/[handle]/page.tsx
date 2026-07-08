@@ -60,7 +60,7 @@ export default function ProductDetailPage() {
     if (sel.soldOut) return
     addToCart({
       id: `${product.id}-${sel.label}`,
-      variantId: sel.variantId ?? `${product.variantId}-${selected}`,
+      variantId: sel.variantId ?? product.variantId,
       title: `${name} — ${sel.label}`,
       price: sel.price,
       quantity: 1,
