@@ -8,8 +8,8 @@ import { useProducts } from '@/hooks/use-products'
 export function FeaturedProducts() {
   const { products, isLoading, error } = useProducts()
 
-  // Keep products in their original source order, show the first three
-  const featured = products.slice(0, 3)
+  // Show the full collection on the home page so every product is visible.
+  const featured = products.slice(0, 12)
 
   return (
     <section id="products" className="py-20 lg:py-28 bg-secondary">
