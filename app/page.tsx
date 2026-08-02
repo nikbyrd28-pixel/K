@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeaturedProducts } from '@/components/featured-products'
+import { InstagramReel } from '@/components/instagram-reel'
 
 function HeroSection() {
   return (
@@ -219,6 +220,7 @@ export default function Home() {
       <CategoryStrip />
       <FeaturedProducts />
       <RoutineSection />
+      <InstagramReel />
       <StoryTeaser />
     </>
   )
