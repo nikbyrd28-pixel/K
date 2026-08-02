@@ -4,6 +4,7 @@ import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeaturedProducts } from '@/components/featured-products'
 import { InstagramReel } from '@/components/instagram-reel'
+import { CollectionShowcase } from '@/components/collection-showcase'
 
 function HeroSection() {
   return (
@@ -219,6 +220,7 @@ export default function Home() {
       <MarqueeBar />
       <CategoryStrip />
       <FeaturedProducts />
+      <CollectionShowcase />
       <RoutineSection />
       <InstagramReel />
       <StoryTeaser />
