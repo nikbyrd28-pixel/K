@@ -29,7 +29,6 @@ export const metadata: Metadata = {
   },
   description,
   applicationName: siteName,
-  generator: 'v0.app',
   keywords: [
     'body care',
     'wellness essentials',

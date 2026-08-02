@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Shipping Policy',
   description:
     'How Hubs & Babydoll handcrafts, processes, and ships your body care and wellness essentials.',
+  alternates: { canonical: '/shipping-policy' },
 }
 
 const sections = [

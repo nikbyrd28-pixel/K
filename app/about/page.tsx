@@ -7,11 +7,6 @@ export const metadata: Metadata = {
 }
 
 function EventsSection() {
-  const details = [
-    { label: 'Event', value: 'TBD' },
-    { label: 'Date', value: 'Coming Soon' },
-    { label: 'Location', value: 'Local Area' },
-  ]
   return (
     <section className="py-20 lg:py-28 bg-background border-t border-border">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -21,29 +16,26 @@ function EventsSection() {
           <span className="h-px w-8 bg-primary/50" />
         </div>
         <h2 className="font-serif text-4xl lg:text-5xl mb-4 text-balance">Find Us In Person</h2>
-        <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-12 text-pretty">
-          We&apos;d love to meet you.
+        <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-10 text-pretty">
+          We pop up at local vending events throughout the season. Follow along or say hello —
+          we&apos;ll let you know where to find us next.
         </p>
 
-        <div className="mx-auto max-w-md border border-primary/30 bg-secondary rounded-sm p-8 lg:p-10 text-left">
-          <span className="inline-block text-[11px] uppercase tracking-[0.2em] text-primary-foreground bg-primary px-3 py-1.5 mb-7">
-            Upcoming Event
-          </span>
-          <dl className="flex flex-col">
-            {details.map((detail, i) => (
-              <div
-                key={detail.label}
-                className={`flex items-baseline justify-between gap-4 py-4 ${
-                  i !== details.length - 1 ? 'border-b border-border' : ''
-                }`}
-              >
-                <dt className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {detail.label}
-                </dt>
-                <dd className="font-serif text-xl lg:text-2xl text-foreground">{detail.value}</dd>
-              </div>
-            ))}
-          </dl>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a
+            href="https://www.instagram.com/hubs_babydoll"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em] font-medium transition-colors"
+          >
+            Follow @hubs_babydoll
+          </a>
+          <a
+            href="mailto:hubsbabydoll@gmail.com"
+            className="inline-flex items-center justify-center rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em] font-medium border border-primary/40 text-foreground hover:bg-primary/10 transition-colors"
+          >
+            Email Us
+          </a>
         </div>
       </div>
     </section>

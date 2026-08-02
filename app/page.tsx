@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeaturedProducts } from '@/components/featured-products'
 import { InstagramReel } from '@/components/instagram-reel'
@@ -58,12 +57,8 @@ function HeroSection() {
             />
           </div>
 
-          <div className="flex items-center gap-2 mt-9">
-            <div className="flex text-primary">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-primary" />
-              ))}
-            </div>
+          <div className="flex items-center gap-3 mt-9">
+            <span className="h-px w-8 bg-primary/50" aria-hidden="true" />
             <span className="text-sm text-muted-foreground">
               Small-batch care boxes made for gifting, restocks, and everyday care
             </span>

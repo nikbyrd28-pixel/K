@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { InstagramIcon, TikTokIcon, FacebookIcon } from '@/components/social-icons'
+import { InstagramIcon, TikTokIcon } from '@/components/social-icons'
 
 export function SiteFooter() {
   return (
@@ -52,45 +52,33 @@ export function SiteFooter() {
             ))}
           </nav>
 
-          {(process.env.NEXT_PUBLIC_INSTAGRAM_URL ||
-            process.env.NEXT_PUBLIC_TIKTOK_URL ||
-            process.env.NEXT_PUBLIC_FACEBOOK_URL) && (
-            <div className="flex items-center gap-6">
-              {process.env.NEXT_PUBLIC_INSTAGRAM_URL && (
-                <a
-                  href={process.env.NEXT_PUBLIC_INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Hubs & Babydoll on Instagram"
-                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
-                >
-                  <InstagramIcon className="w-5 h-5" />
-                </a>
-              )}
-              {process.env.NEXT_PUBLIC_TIKTOK_URL && (
-                <a
-                  href={process.env.NEXT_PUBLIC_TIKTOK_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Hubs & Babydoll on TikTok"
-                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
-                >
-                  <TikTokIcon className="w-5 h-5" />
-                </a>
-              )}
-              {process.env.NEXT_PUBLIC_FACEBOOK_URL && (
-                <a
-                  href={process.env.NEXT_PUBLIC_FACEBOOK_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Hubs & Babydoll on Facebook"
-                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
-                >
-                  <FacebookIcon className="w-5 h-5" />
-                </a>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-6">
+            <a
+              href="https://www.instagram.com/hubs_babydoll"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Hubs & Babydoll on Instagram"
+              className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
+            >
+              <InstagramIcon className="w-5 h-5" />
+            </a>
+            <a
+              href="https://www.tiktok.com/@hubs_babydoll"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Hubs & Babydoll on TikTok"
+              className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95"
+            >
+              <TikTokIcon className="w-5 h-5" />
+            </a>
+            <a
+              href="mailto:hubsbabydoll@gmail.com"
+              aria-label="Email Hubs & Babydoll"
+              className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-125 active:scale-95 text-xs uppercase tracking-[0.2em] font-semibold"
+            >
+              Email
+            </a>
+          </div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
             © 2026 Hubs &amp; Babydoll · Handcrafted Excellence
           </p>

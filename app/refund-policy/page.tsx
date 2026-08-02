@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Refund Policy',
   description:
     'Hubs & Babydoll refund, return, and exchange policy for our handcrafted body care and wellness essentials.',
+  alternates: { canonical: '/refund-policy' },
 }
 
 const sections = [
