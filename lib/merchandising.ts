@@ -21,7 +21,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     order: 1,
     name: 'HEARD Bay Rum Box',
     description:
-      'For the man who carries a lot and rarely asks for anything in return. The HEARD Gift Box is a curated grooming ritual.',
+      'For the man who carries a lot and rarely asks for anything in return. The HEARD Gift Box is a curated grooming experience.',
     sizes: [
       { label: 'One size', price: 50 },
     ],
@@ -48,7 +48,7 @@ export const MERCHANDISING: Record<string, Merch> = {
     order: 4,
     name: 'SEEN Jasmine & Gardenia Box',
     description:
-      'The SEEN Gift Box is a wellness routine that says, "I see you. You deserve care, too."',
+      'The SEEN Gift Box is a moment of care that says, "I see you. You deserve care, too."',
     sizes: [
       { label: '2 oz box', price: 40, badge: 'Most Popular' },
       { label: '4 oz box', price: 55 },

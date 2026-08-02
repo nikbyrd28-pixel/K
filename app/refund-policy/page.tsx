@@ -42,7 +42,7 @@ const sections = [
   {
     heading: 'Questions',
     body: [
-      'We are a small, home-based brand and we genuinely want you to love your routine. If something is not right, please reach out and we will do our best to make it right.',
+      'We are a small, home-based brand and we genuinely want you to love what you ordered. If something is not right, please reach out and we will do our best to make it right.',
     ],
   },
 ]

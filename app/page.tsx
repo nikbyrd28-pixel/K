@@ -4,6 +4,7 @@ import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeaturedProducts } from '@/components/featured-products'
 import { InstagramReel } from '@/components/instagram-reel'
+import { CollectionShowcase } from '@/components/collection-showcase'
 
 function HeroSection() {
   return (
@@ -31,7 +32,7 @@ function HeroSection() {
           <div className="flex items-center gap-3 mb-7">
             <span className="h-px w-8 bg-primary/50" />
             <span className="text-xs uppercase tracking-[0.3em] text-primary">
-              Small-Batch Body Care &amp; Gift Routines
+              Small-Batch Body Care &amp; Gift Sets
             </span>
           </div>
           <h1 className="font-serif text-5xl lg:text-7xl leading-[1.04] mb-7 text-balance">
@@ -63,7 +64,7 @@ function HeroSection() {
               ))}
             </div>
             <span className="text-sm text-muted-foreground">
-              Small-batch care boxes made for gifting, restocks, and everyday routines
+              Small-batch care boxes made for gifting, restocks, and everyday care
             </span>
           </div>
         </div>
@@ -97,7 +98,7 @@ function CategoryStrip() {
   const categories = [
     { name: 'Body Butters', desc: 'Whipped, deeply nourishing daily moisture' },
     { name: 'Body Oils', desc: 'Silky, fast-absorbing all-day glow' },
-    { name: 'Wellness Essentials', desc: 'Curated routines for calm, comfort, and care' },
+    { name: 'Wellness Essentials', desc: 'Curated sets for calm, comfort, and care' },
   ]
   return (
     <section className="py-16 lg:py-24 bg-background border-b border-border">
@@ -151,11 +152,11 @@ function RoutineSection() {
     },
     {
       title: 'Handcrafted Care',
-      copy: 'Blended and poured in small batches so every jar and bottle feels intentional — a real care routine, not a factory afterthought.',
+      copy: 'Blended and poured in small batches so every jar and bottle feels intentional — real, intentional care — not a factory afterthought.',
     },
     {
       title: 'Lasting Radiance',
-      copy: 'Soft, lasting hydration wrapped in memorable scent profiles that turn everyday body care into a routine.'
+      copy: 'Soft, lasting hydration wrapped in memorable scent profiles that turn everyday body care into something you look forward to.'
     },
   ]
 
@@ -197,9 +198,18 @@ function StoryTeaser() {
         <h2 className="font-serif text-4xl sm:text-5xl leading-[1.12] mt-8 mb-8 text-balance">
           The people who love the hardest often care for themselves the least.
         </h2>
-        <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-10 text-pretty">
+        <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-9 text-pretty">
           We&apos;re a small, home-based brand creating handcrafted self-care essentials and gift
-          experiences designed to transform everyday routines into meaningful wellness moments.
+          experiences designed to transform everyday care into meaningful wellness moments.
+        </p>
+        <p className="font-serif italic text-2xl lg:text-3xl text-primary leading-snug max-w-2xl mx-auto mb-8 text-balance">
+          &ldquo;Because the people who spend their lives pouring into others deserve to be poured into, too.&rdquo;
+        </p>
+        <p className="font-serif text-3xl text-foreground/90 mb-2" style={{ transform: 'rotate(-4deg)' }}>
+          Hubs &amp; Babydoll
+        </p>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground mb-10">
+          Handmade, with love
         </p>
         <Button
           size="lg"
@@ -219,6 +229,7 @@ export default function Home() {
       <MarqueeBar />
       <CategoryStrip />
       <FeaturedProducts />
+      <CollectionShowcase />
       <RoutineSection />
       <InstagramReel />
       <StoryTeaser />

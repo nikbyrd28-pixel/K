@@ -7,7 +7,7 @@ const FAQS = [
   {
     question: 'What makes Hubs & Babydoll different?',
     answer:
-      'Every product is made in small batches with rich plant-based oils and butters, then curated into routines that feel intentional — not generic, watered down, or rushed off a factory line.',
+      'Every product is made in small batches with rich plant-based oils and butters, then curated into gift sets that feel intentional — not generic, watered down, or rushed off a factory line.',
   },
   {
     question: 'Are your products safe for sensitive skin?',
@@ -32,7 +32,7 @@ const FAQS = [
   {
     question: 'How should I use the body oils and butters?',
     answer:
-      'Apply to clean skin, ideally while skin is slightly damp. Use body oil for a silky glow, body butter for richer moisture, or layer both for a more indulgent routine.',
+      'Apply to clean skin, ideally while skin is slightly damp. Use body oil for a silky glow, body butter for richer moisture, or layer both for a more indulgent finish.',
   },
   {
     question: 'How do I hear about restocks and new products?',

@@ -69,7 +69,7 @@ export default function AboutPage() {
             </p>
             <p className="text-base lg:text-lg text-muted-foreground leading-relaxed text-pretty">
               We&apos;re a small, home-based brand creating handcrafted self-care essentials and gift
-              experiences designed to transform everyday routines into meaningful wellness moments.
+              experiences designed to transform everyday care into meaningful wellness moments.
               Rooted in the belief that everyone deserves to feel SEEN and HEARD, our products invite
               you to slow down, soften, and care for yourself and the people you love — one
               intentional moment at a time.
@@ -101,7 +101,7 @@ export default function AboutPage() {
             If you see us at a local vending event, please stop by. We love hearing your stories,
             learning what you&apos;re celebrating and what you&apos;re navigating, and helping you
             find the products that fit the season you&apos;re in. Thank you for supporting our dream
-            and allowing Hubs &amp; Babydoll to become part of your routines.
+            and allowing Hubs &amp; Babydoll to become part of your self-care.
           </p>
         </div>
       </section>
