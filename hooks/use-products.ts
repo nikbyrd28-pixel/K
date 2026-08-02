@@ -91,6 +91,30 @@ function toTitleCase(input: string): string {
 const FALLBACK_PRODUCTS: Product[] = [
   {
     id: 'gid://shopify/Product/1',
+    handle: 'bay-rum-8-oz-body-box',
+    title: 'HEARD Bay Rum Box',
+    description:
+      'For the man who carries a lot and rarely asks for anything in return. A curated Bay Rum grooming ritual — body oil, body butter, body bar, and soft-touch cloths — that says, "I see you. You deserve care, too."',
+    image: '/products/pro-heard-bay-rum-set.jpg',
+    imageAlt: 'HEARD Bay Rum gift box set by Hubs & Babydoll',
+    price: '50.00',
+    variantId: 'gid://shopify/ProductVariant/1',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/2',
+    handle: 'lavender-4-oz-body-box-inside',
+    title: 'SEEN Lavender Box',
+    description:
+      'For the woman who gives so much of herself. A soothing Lavender Rose ritual — oil, body butter, body wash — a gentle reminder to slow down, breathe, and pour a little love back in.',
+    image: '/products/pro-seen-lavender-set.jpg',
+    imageAlt: 'SEEN Lavender Rose gift box set by Hubs & Babydoll',
+    price: '40.00',
+    variantId: 'gid://shopify/ProductVariant/2',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/3',
     handle: 'harmony-bay-rum-body-oil',
     title: 'Harmony Bay Rum Body Oil',
     description:
@@ -98,11 +122,11 @@ const FALLBACK_PRODUCTS: Product[] = [
     image: '/products/oil-bay-rum.png',
     imageAlt: 'Harmony Bay Rum Body Oil by Hubs & Babydoll',
     price: '15.00',
-    variantId: 'gid://shopify/ProductVariant/1',
+    variantId: 'gid://shopify/ProductVariant/3',
     variants: [],
   },
   {
-    id: 'gid://shopify/Product/2',
+    id: 'gid://shopify/Product/4',
     handle: 'harmony-jasmine-gardenia-body-oil',
     title: 'Harmony Jasmine & Gardenia Body Oil',
     description:
@@ -110,11 +134,11 @@ const FALLBACK_PRODUCTS: Product[] = [
     image: '/products/oil-jasmine-gardenia.jpg',
     imageAlt: 'Harmony Jasmine & Gardenia Body Oil by Hubs & Babydoll',
     price: '15.00',
-    variantId: 'gid://shopify/ProductVariant/2',
+    variantId: 'gid://shopify/ProductVariant/4',
     variants: [],
   },
   {
-    id: 'gid://shopify/Product/3',
+    id: 'gid://shopify/Product/5',
     handle: 'seen-jasmine-gardenia-body-butter',
     title: 'SEEN Jasmine & Gardenia Body Butter',
     description:
@@ -122,11 +146,11 @@ const FALLBACK_PRODUCTS: Product[] = [
     image: '/products/butter-jasmine-gardenia.jpg',
     imageAlt: 'SEEN Jasmine & Gardenia Body Butter by Hubs & Babydoll',
     price: '10.00',
-    variantId: 'gid://shopify/ProductVariant/3',
+    variantId: 'gid://shopify/ProductVariant/5',
     variants: [],
   },
   {
-    id: 'gid://shopify/Product/4',
+    id: 'gid://shopify/Product/6',
     handle: 'seen-lavender-rose-body-butter',
     title: 'SEEN Lavender Rose Body Butter',
     description:
@@ -134,30 +158,6 @@ const FALLBACK_PRODUCTS: Product[] = [
     image: '/products/butter-lavender-rose.jpg',
     imageAlt: 'SEEN Lavender Rose Body Butter by Hubs & Babydoll',
     price: '10.00',
-    variantId: 'gid://shopify/ProductVariant/4',
-    variants: [],
-  },
-  {
-    id: 'gid://shopify/Product/5',
-    handle: 'peppermint-body-butter',
-    title: 'Peppermint Body Butter',
-    description:
-      'Shea, mango, and coco butters with jojoba, sweet almond, and apricot oils, peppermint, and Vitamin E. Cool, clean, and awakening.',
-    image: '/products/butter-peppermint.jpg',
-    imageAlt: 'Peppermint Body Butter by Hubs & Babydoll',
-    price: '10.00',
-    variantId: 'gid://shopify/ProductVariant/5',
-    variants: [],
-  },
-  {
-    id: 'gid://shopify/Product/6',
-    handle: 'chocolate-harmony-oil',
-    title: 'Chocolate Harmony Oil',
-    description:
-      'Jojoba, sweet almond, flaxseed, and castor oils with Vitamin E and rich, cozy notes of Chocolate. A warm, indulgent glow.',
-    image: '/products/oil-chocolate.jpg',
-    imageAlt: 'Chocolate Harmony Oil by Hubs & Babydoll',
-    price: '15.00',
     variantId: 'gid://shopify/ProductVariant/6',
     variants: [],
   },
