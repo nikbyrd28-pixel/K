@@ -1,0 +1,22 @@
+name: Import products to Shopify
+
+# Run this manually from the Actions tab once the two secrets are set:
+#   SHOPIFY_STORE_DOMAIN  (e.g. hubs-babydoll.myshopify.com)
+#   SHOPIFY_ADMIN_TOKEN   (Admin API access token, starts with shpat_, needs write_products)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Create products in Shopify
+        env:
+          SHOPIFY_STORE_DOMAIN: ${{ secrets.SHOPIFY_STORE_DOMAIN }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+        run: node scripts/shopify-import.mjs
