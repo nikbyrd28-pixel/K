@@ -86,42 +86,79 @@ function toTitleCase(input: string): string {
     .join(' ')
 }
 
-// Fallback products for demo - replace with real Shopify products
+// Fallback products shown when Shopify isn't connected. These use Hubs & Babydoll's
+// real product photos, names, and pricing so the demo mirrors the actual catalog.
 const FALLBACK_PRODUCTS: Product[] = [
   {
     id: 'gid://shopify/Product/1',
-    handle: 'lavender-set',
-    title: 'The SEEN Lavender Set',
+    handle: 'harmony-bay-rum-body-oil',
+    title: 'Harmony Bay Rum Body Oil',
     description:
-      'Melt away the mental noise of the day. Formulated with pure Shea Butter, Mango Butter, Jojoba Oil, and therapeutic Lavender Essential Oil, this set deeply hydrates, reduces inflammation, and prepares your mind and body for deep, restorative rest.',
-    image: '/lavender-set.png',
-    imageAlt: 'The SEEN Lavender Set',
-    price: '58.00',
+      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils with Vitamin E and notes of Bay Rum. Nourishes skin and conditions beards without a greasy finish.',
+    image: '/products/oil-bay-rum.png',
+    imageAlt: 'Harmony Bay Rum Body Oil by Hubs & Babydoll',
+    price: '15.00',
     variantId: 'gid://shopify/ProductVariant/1',
     variants: [],
   },
   {
     id: 'gid://shopify/Product/2',
-    handle: 'bay-rum-experience',
-    title: 'The HEARD Bay Rum Experience',
+    handle: 'harmony-jasmine-gardenia-body-oil',
+    title: 'Harmony Jasmine & Gardenia Body Oil',
     description:
-      'A grounding, full-body experience designed for rich, masculine or unisex hydration. Utilizing classic West Indian Bay Rum botanicals, it leaves an energetic, crisp finish that keeps skin velvety and vibrant from morning to night.',
-    image: '/bay-rum.png',
-    imageAlt: 'The HEARD Bay Rum Experience',
-    price: '68.00',
+      'The timeless elegance of Jasmine & Gardenia in a blend of jojoba, sweet almond, flaxseed, and castor oils with Vitamin E. Melts in to nourish, soften, and reveal a luminous glow.',
+    image: '/products/oil-jasmine-gardenia.jpg',
+    imageAlt: 'Harmony Jasmine & Gardenia Body Oil by Hubs & Babydoll',
+    price: '15.00',
     variantId: 'gid://shopify/ProductVariant/2',
     variants: [],
   },
   {
     id: 'gid://shopify/Product/3',
-    handle: 'jasmine-gardenia-shield',
-    title: 'The SEEN Jasmine & Gardenia Shield',
+    handle: 'seen-jasmine-gardenia-body-butter',
+    title: 'SEEN Jasmine & Gardenia Body Butter',
     description:
-      'Elevate your daily ritual with a sophisticated, pure floral shield. This blend locks in vital moisture all day long, draping your skin in an intoxicating, delicate floral bouquet that protects against environmental dryness.',
-    image: '/jasmine-gardenia.png',
-    imageAlt: 'The SEEN Jasmine & Gardenia Shield',
-    price: '68.00',
+      'Curated shea, mango, and coco butters with jojoba, sweet almond, flaxseed, and castor oils, Vitamin E, and notes of Jasmine & Gardenia. Rich hydration with a balanced, non-greasy finish.',
+    image: '/products/butter-jasmine-gardenia.jpg',
+    imageAlt: 'SEEN Jasmine & Gardenia Body Butter by Hubs & Babydoll',
+    price: '10.00',
     variantId: 'gid://shopify/ProductVariant/3',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/4',
+    handle: 'seen-lavender-rose-body-butter',
+    title: 'SEEN Lavender Rose Body Butter',
+    description:
+      'Curated shea, mango, and coco butters with jojoba, sweet almond, flaxseed, and castor oils, Vitamin E, and notes of Lavender & Rose. Calming, romantic, deeply nourishing.',
+    image: '/products/butter-lavender-rose.jpg',
+    imageAlt: 'SEEN Lavender Rose Body Butter by Hubs & Babydoll',
+    price: '10.00',
+    variantId: 'gid://shopify/ProductVariant/4',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/5',
+    handle: 'peppermint-body-butter',
+    title: 'Peppermint Body Butter',
+    description:
+      'Shea, mango, and coco butters with jojoba, sweet almond, and apricot oils, peppermint, and Vitamin E. Cool, clean, and awakening.',
+    image: '/products/butter-peppermint.jpg',
+    imageAlt: 'Peppermint Body Butter by Hubs & Babydoll',
+    price: '10.00',
+    variantId: 'gid://shopify/ProductVariant/5',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/6',
+    handle: 'chocolate-harmony-oil',
+    title: 'Chocolate Harmony Oil',
+    description:
+      'Jojoba, sweet almond, flaxseed, and castor oils with Vitamin E and rich, cozy notes of Chocolate. A warm, indulgent glow.',
+    image: '/products/oil-chocolate.jpg',
+    imageAlt: 'Chocolate Harmony Oil by Hubs & Babydoll',
+    price: '15.00',
+    variantId: 'gid://shopify/ProductVariant/6',
     variants: [],
   },
 ]
