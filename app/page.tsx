@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { FeaturedProducts } from '@/components/featured-products'
 import { InstagramReel } from '@/components/instagram-reel'
 import { CollectionShowcase } from '@/components/collection-showcase'
+import { Lookbook } from '@/components/lookbook'
 
 function HeroSection() {
   return (
@@ -231,6 +232,7 @@ export default function Home() {
       <FeaturedProducts />
       <CollectionShowcase />
       <RoutineSection />
+      <Lookbook />
       <InstagramReel />
       <StoryTeaser />
     </>
