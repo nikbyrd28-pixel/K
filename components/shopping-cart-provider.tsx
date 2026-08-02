@@ -72,37 +72,21 @@ export function ShoppingCartProvider({ children }: { children: ReactNode }) {
     setCart([])
   }
 
+  // Orders are placed directly with Hubs & Babydoll (email/Instagram) rather than
+  // an online checkout — we confirm total, availability, and pickup/delivery personally.
   const checkout = async () => {
     if (cart.length === 0) return
-    setIsCheckingOut(true)
-    setCheckoutError(null)
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          lines: cart.map((item) => ({
-            variantId: item.variantId,
-            quantity: item.quantity,
-          })),
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Unable to start checkout')
-      }
-      // Open Shopify hosted checkout. If embedded in an iframe, open a new tab.
-      if (window.self !== window.top) {
-        window.open(data.checkoutUrl, '_blank')
-      } else {
-        window.location.href = data.checkoutUrl
-      }
-    } catch (error) {
-      console.error('[v0] Checkout error:', error)
-      setCheckoutError(error instanceof Error ? error.message : 'Checkout failed')
-    } finally {
-      setIsCheckingOut(false)
-    }
+    const lines = cart
+      .map((item) => `- ${item.title} x ${item.quantity}  ($${(item.price * item.quantity).toFixed(2)})`)
+      .join('\n')
+    const body =
+      `Hi Hubs & Babydoll,\n\nI'd love to order:\n\n${lines}\n\n` +
+      `Estimated subtotal: $${subtotal.toFixed(2)}\n\n` +
+      `My name:\nPickup or delivery:\nAnything else:\n\nThank you!`
+    const href = `mailto:hubsbabydoll@gmail.com?subject=${encodeURIComponent(
+      'Order from hubsandbabydoll.com',
+    )}&body=${encodeURIComponent(body)}`
+    if (typeof window !== 'undefined') window.location.href = href
   }
 
   return (

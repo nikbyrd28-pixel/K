@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { X, Plus, Minus, ShoppingBag, Loader2 } from 'lucide-react'
+import { X, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from './shopping-cart-provider'
 
@@ -14,8 +14,6 @@ export function CartDrawer() {
     updateQuantity,
     removeFromCart,
     checkout,
-    isCheckingOut,
-    checkoutError,
     cartCount,
   } = useShoppingCart()
 
@@ -116,27 +114,28 @@ export function CartDrawer() {
           <div className="border-t border-border px-6 py-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Subtotal
+                Estimated Total
               </span>
               <span className="font-serif text-2xl text-primary">${subtotal.toFixed(2)}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Shipping and taxes are calculated securely at checkout.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              No online payment — send your order and we&apos;ll personally confirm your total,
+              availability, and pickup or delivery.
             </p>
-            {checkoutError && <p className="text-xs text-destructive">{checkoutError}</p>}
             <Button
               onClick={checkout}
-              disabled={isCheckingOut}
               className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-12"
             >
-              {isCheckingOut ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Preparing Your Order
-                </span>
-              ) : (
-                'Complete Securely'
-              )}
+              Email My Order
             </Button>
+            <a
+              href="https://www.instagram.com/hubs_babydoll"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors"
+            >
+              Order on Instagram
+            </a>
           </div>
         )}
       </aside>
