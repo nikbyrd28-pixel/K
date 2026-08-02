@@ -44,6 +44,12 @@ export function ProductCard({ product }: { product: Product }) {
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
+        ) : null}
+        {product.image ? (
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/35 via-transparent to-background/10"
+            aria-hidden="true"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Leaf className="w-8 h-8 text-muted-foreground" />
