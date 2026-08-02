@@ -94,7 +94,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     handle: 'bay-rum-8-oz-body-box',
     title: 'HEARD Bay Rum Box',
     description:
-      'For the man who carries a lot and rarely asks for anything in return. A curated Bay Rum grooming ritual — body oil, body butter, body bar, and soft-touch cloths — that says, "I see you. You deserve care, too."',
+      'For the man who carries a lot and rarely asks for anything in return. A curated Bay Rum grooming set — body oil, body butter, body bar, and soft-touch cloths — that says, "I see you. You deserve care, too."',
     image: '/products/pro-heard-bay-rum-set.jpg',
     imageAlt: 'HEARD Bay Rum gift box set by Hubs & Babydoll',
     price: '50.00',
@@ -106,7 +106,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     handle: 'lavender-4-oz-body-box-inside',
     title: 'SEEN Lavender Box',
     description:
-      'For the woman who gives so much of herself. A soothing Lavender Rose ritual — oil, body butter, body wash — a gentle reminder to slow down, breathe, and pour a little love back in.',
+      'For the woman who gives so much of herself. A soothing Lavender Rose set — oil, body butter, body wash — a gentle reminder to slow down, breathe, and pour a little love back in.',
     image: '/products/pro-seen-lavender-set.jpg',
     imageAlt: 'SEEN Lavender Rose gift box set by Hubs & Babydoll',
     price: '40.00',
@@ -159,6 +159,42 @@ const FALLBACK_PRODUCTS: Product[] = [
     imageAlt: 'SEEN Lavender Rose Body Butter by Hubs & Babydoll',
     price: '10.00',
     variantId: 'gid://shopify/ProductVariant/6',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/7',
+    handle: 'heard-bay-rum-beard-set',
+    title: 'HEARD Bay Rum Beard Set',
+    description:
+      'The complete Bay Rum beard grooming set — beard wash, beard oil, and beard balm — with Moroccan argan, jojoba, sweet almond, pumpkin seed, and castor oils, Vitamin E, and warm notes of Bay Rum.',
+    image: '/products/pro-bay-rum-beard-set.jpg',
+    imageAlt: 'HEARD Bay Rum beard care gift set by Hubs & Babydoll',
+    price: '45.00',
+    variantId: 'gid://shopify/ProductVariant/7',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/8',
+    handle: 'bay-rum-beard-oil',
+    title: 'Bay Rum Beard Oil',
+    description:
+      'Jojoba, sweet almond, castor, rosemary, flax, and pumpkin seed oils with Vitamin E and notes of Bay Rum. Softens the beard and conditions the skin beneath.',
+    image: '/products/pro-bay-rum-beard-oil.jpg',
+    imageAlt: 'Bay Rum Beard Oil by Hubs & Babydoll',
+    price: '15.00',
+    variantId: 'gid://shopify/ProductVariant/8',
+    variants: [],
+  },
+  {
+    id: 'gid://shopify/Product/9',
+    handle: 'bay-rum-beard-balm',
+    title: 'Bay Rum Beard Balm',
+    description:
+      'Shea, mango, and coco butters with beeswax, argan, jojoba, sweet almond, castor, rosemary, and pumpkin seed oils, Vitamin E, and notes of Bay Rum. Tames, shapes, and conditions.',
+    image: '/products/pro-bay-rum-beard-balm.jpg',
+    imageAlt: 'Bay Rum Beard Balm by Hubs & Babydoll',
+    price: '12.00',
+    variantId: 'gid://shopify/ProductVariant/9',
     variants: [],
   },
 ]

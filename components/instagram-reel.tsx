@@ -14,7 +14,7 @@ export function InstagramReel() {
           <div className="order-2 lg:order-1">
             <span className="text-xs uppercase tracking-[0.3em] text-primary">In Motion</span>
             <h2 className="font-serif text-4xl lg:text-5xl mt-5 leading-[1.1] text-balance">
-              See the ritual come to life.
+              See it come to life.
             </h2>
             <p className="text-muted-foreground leading-relaxed mt-6 text-pretty max-w-md">
               A closer look at the small-batch care behind every Hubs &amp; Babydoll box —

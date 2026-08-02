@@ -10,14 +10,14 @@ export function SiteFooter() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-5">
             <span className="h-px w-8 bg-primary/50" />
-            <span className="text-xs uppercase tracking-[0.3em] text-primary">Your Routine Awaits</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-primary">Your Collection Awaits</span>
             <span className="h-px w-8 bg-primary/50" />
           </div>
           <h2 className="font-serif text-4xl lg:text-6xl mb-6 text-balance">
             Give your skin the attention it deserves.
           </h2>
           <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-9 max-w-xl mx-auto text-pretty">
-            Step into a genuinely restorative self-care routine. Handcrafted, indulgent, and made to
+            Step into genuinely restorative self-care. Handcrafted, indulgent, and made to
             be felt all day long.
           </p>
           <Button

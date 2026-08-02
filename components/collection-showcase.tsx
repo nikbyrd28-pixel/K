@@ -24,7 +24,7 @@ export function CollectionShowcase() {
           <div className="max-w-lg">
             <span className="text-xs uppercase tracking-[0.3em] text-primary">The Full Collection</span>
             <h2 className="font-serif text-4xl lg:text-6xl leading-[1.04] mt-5 mb-6 text-balance">
-              Every scent. Every ritual. All handmade.
+              Every scent. Every detail. All handmade.
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-8 max-w-md text-pretty">
               From Bay Rum to Jasmine &amp; Gardenia, Lavender Rose, Peppermint, and Chocolate —
