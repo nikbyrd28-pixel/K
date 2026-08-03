@@ -20,8 +20,7 @@ if (!DOMAIN || !TOKEN) {
   process.exit(1)
 }
 if (!TOKEN.startsWith('shpat_')) {
-  console.error(`SHOPIFY_ADMIN_TOKEN should start with "shpat_" (an Admin API access token). Got a token starting with "${TOKEN.slice(0, 6)}…". Use the Admin API access token, not the API key or API secret key.`)
-  process.exit(1)
+  console.warn(`Note: token starts with "${TOKEN.slice(0, 6)}…", not the usual "shpat_". Trying it anyway — if Shopify replies 401 Unauthorized, use the "Admin API access token" from your app's API credentials (Reveal token once).`)
 }
 
 const host = DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, '')
