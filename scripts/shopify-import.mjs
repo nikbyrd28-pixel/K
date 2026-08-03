@@ -136,7 +136,14 @@ function buildInput(p) {
 }
 
 async function main() {
-  console.log(`Importing ${PRODUCTS.length} products into ${host} …`)
+  // By default only add the new beard-care line, so existing Shopify products
+  // (and their photos) are left untouched. Set IMPORT_ALL=true to import all 9.
+  const importAll = process.env.IMPORT_ALL === 'true'
+  const items = importAll ? PRODUCTS : PRODUCTS.filter((p) => p.handle.includes('beard'))
+  console.log(
+    `Importing ${items.length} product(s) into ${host} …` +
+      (importAll ? '' : ' (new beard-care line only — set IMPORT_ALL=true to import all 9)'),
+  )
 
   // Discover sales channels so products become visible to the Storefront API.
   const pubData = await gql(`{ publications(first: 25) { edges { node { id name } } } }`)
@@ -144,7 +151,7 @@ async function main() {
   console.log(`Publishing to channels: ${publications.map((p) => p.name).join(', ') || '(none found)'}`)
 
   let ok = 0
-  for (const p of PRODUCTS) {
+  for (const p of items) {
     try {
       const data = await gql(PRODUCT_SET, { input: buildInput(p) })
       const errs = data.productSet.userErrors
@@ -163,8 +170,8 @@ async function main() {
     }
   }
 
-  console.log(`\nDone — ${ok}/${PRODUCTS.length} products created/updated and published.`)
-  if (ok < PRODUCTS.length) process.exit(1)
+  console.log(`\nDone — ${ok}/${items.length} products created/updated and published.`)
+  if (ok < items.length) process.exit(1)
 }
 
 main().catch((err) => {
