@@ -2,10 +2,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { InstagramIcon, TikTokIcon } from '@/components/social-icons'
+import { Newsletter } from '@/components/newsletter'
 
 export function SiteFooter() {
   return (
     <footer className="bg-background border-t border-border">
+      <Newsletter />
       <section className="py-20 lg:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-5">

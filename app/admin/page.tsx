@@ -145,6 +145,7 @@ export default function AdminPage() {
 // ---------------------------------------------------------------------------
 function OrdersTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
   const [orders, setOrders] = useState<Order[] | null>(null)
+  const [subscribers, setSubscribers] = useState<Order[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -154,6 +155,7 @@ function OrdersTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
     try {
       const data = await call('orders')
       setOrders(data.orders || [])
+      setSubscribers(data.subscribers || [])
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not load orders.')
     } finally {
@@ -167,6 +169,19 @@ function OrdersTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
 
   return (
     <div>
+      {subscribers.length > 0 && (
+        <details className="mb-6 border border-border rounded-sm bg-card">
+          <summary className="cursor-pointer px-5 py-4 text-sm">
+            <span className="text-primary font-medium">{subscribers.length}</span>{' '}
+            <span className="text-muted-foreground">email subscriber{subscribers.length === 1 ? '' : 's'} on your list</span>
+          </summary>
+          <div className="px-5 pb-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-3">
+            {subscribers.map((s, i) => (
+              <span key={s.id ?? i} className="text-xs text-muted-foreground">{s.email}</span>
+            ))}
+          </div>
+        </details>
+      )}
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-muted-foreground">
           {orders ? `${orders.length} recent order${orders.length === 1 ? '' : 's'}` : ' '}
