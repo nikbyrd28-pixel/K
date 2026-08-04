@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 interface CartItem {
   id: string
@@ -32,6 +32,19 @@ const ShoppingCartContext = createContext<ShoppingCartContextType | undefined>(u
 export function ShoppingCartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
+
+  // Persist the cart so it survives refreshes and the trip to /checkout.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('hb_cart')
+      if (saved) setCart(JSON.parse(saved))
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try {
+      localStorage.setItem('hb_cart', JSON.stringify(cart))
+    } catch {}
+  }, [cart])
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
