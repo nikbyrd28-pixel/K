@@ -222,3 +222,61 @@ export const CATALOG: CatalogItem[] = [
     sizes: [{ size: '4 oz', price: 18 }], // GUESS
   },
 ]
+
+// ============================================================================
+//  The list above is the built-in "safety net." The owner can also edit prices,
+//  swap photos, hide products, and add new ones from the Studio page (/admin) —
+//  those live edits are saved in the backend and layered on top of this list.
+//  mergeCatalog() combines the two so the site always has something to show.
+// ============================================================================
+
+/** A product row as saved by the Studio (backend table hb_products). */
+export type ProductRow = {
+  handle: string
+  name: string
+  description: string
+  image: string
+  sizes: CatalogSize[]
+  sort: number
+  active: boolean
+}
+
+export type EffectiveItem = CatalogItem & { active: boolean; sort: number }
+
+/** Layer the owner's saved edits (rows) on top of the built-in CATALOG. */
+export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
+  const byHandle = new Map(rows.map((r) => [r.handle, r]))
+  const seen = new Set<string>()
+
+  const base: EffectiveItem[] = CATALOG.map((item, i) => {
+    seen.add(item.handle)
+    const r = byHandle.get(item.handle)
+    if (!r) return { ...item, active: true, sort: i }
+    return {
+      handle: item.handle,
+      name: r.name || item.name,
+      description: r.description ?? item.description,
+      image: r.image || item.image,
+      imageAlt: item.imageAlt || r.name || item.name,
+      sizes: Array.isArray(r.sizes) && r.sizes.length ? r.sizes : item.sizes,
+      active: r.active !== false,
+      sort: Number.isFinite(r.sort) ? r.sort : i,
+    }
+  })
+
+  // Brand-new products the owner added in the Studio (not in the built-in list).
+  const extras: EffectiveItem[] = rows
+    .filter((r) => !seen.has(r.handle))
+    .map((r, j) => ({
+      handle: r.handle,
+      name: r.name,
+      description: r.description,
+      image: r.image,
+      imageAlt: r.name,
+      sizes: Array.isArray(r.sizes) ? r.sizes : [],
+      active: r.active !== false,
+      sort: Number.isFinite(r.sort) ? r.sort : 100 + j,
+    }))
+
+  return [...base, ...extras].sort((a, b) => a.sort - b.sort)
+}
