@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Loader2, Check, ChevronLeft } from 'lucide-react'
+import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
 
@@ -37,14 +37,25 @@ export default function CheckoutPage() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  const placeOrder = async () => {
-    setError(null)
-    if (cart.length === 0) return
-    if (form.name.trim().length < 2) return setError('Please enter your name.')
-    if (form.phone.replace(/\D/g, '').length < 10) return setError('Please enter a valid phone number.')
-    if (form.method === 'Ship to me' && (!form.address.trim() || !form.city.trim() || !form.zip.trim()))
-      return setError('Please enter your shipping address.')
+  // Returning from Stripe hosted checkout (success_url = /checkout?paid=1).
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('paid') === '1') {
+      clearCart()
+      setDone(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
+  const validate = () => {
+    if (cart.length === 0) return 'Your cart is empty.'
+    if (form.name.trim().length < 2) return 'Please enter your name.'
+    if (form.phone.replace(/\D/g, '').length < 10) return 'Please enter a valid phone number.'
+    if (form.method === 'Ship to me' && (!form.address.trim() || !form.city.trim() || !form.zip.trim()))
+      return 'Please enter your shipping address.'
+    return null
+  }
+
+  const recordOrder = async (payLabel: string) => {
     const items = cart.map((i) => `- ${i.title} x ${i.quantity}  ($${(i.price * i.quantity).toFixed(2)})`).join('\n')
     const ship =
       form.method === 'Ship to me'
@@ -52,32 +63,66 @@ export default function CheckoutPage() {
         : form.method
     const message =
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
-      `Fulfillment: ${form.method}\n` +
+      `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
       (form.notes ? `Notes: ${form.notes}\n` : '')
+    const res = await fetch(`${SUPA_URL}/rest/v1/client_leads`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        client: CLIENT,
+        kind: 'order',
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${subtotal.toFixed(2)} · ${payLabel}`,
+        pickup: ship,
+        message,
+      }),
+    })
+    if (!res.ok) throw new Error('http ' + res.status)
+  }
 
+  // Pay now with a card via Stripe hosted checkout.
+  const payByCard = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
     setSubmitting(true)
     try {
-      const res = await fetch(`${SUPA_URL}/rest/v1/client_leads`, {
+      await recordOrder('Card (pending)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-checkout`, {
         method: 'POST',
-        headers: {
-          apikey: SUPA_KEY,
-          Authorization: `Bearer ${SUPA_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client: CLIENT,
-          kind: 'order',
           name: form.name.trim(),
-          phone: form.phone.trim(),
           email: form.email.trim(),
-          service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${subtotal.toFixed(2)}`,
-          pickup: ship,
-          message,
+          phone: form.phone.trim(),
+          items: cart.map((i) => ({ name: i.title, amount: i.price, quantity: i.quantity })),
         }),
       })
-      if (!res.ok) throw new Error('http ' + res.status)
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start card checkout.')
+      window.location.href = data.url
+    } catch (e) {
+      setSubmitting(false)
+      setError(e instanceof Error ? e.message : 'Could not start card checkout.')
+    }
+  }
+
+  // Place the order now and arrange payment after (tap-to-pay / invoice).
+  const placeOrder = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
+    setSubmitting(true)
+    try {
+      await recordOrder('Pay on confirmation')
       setPaidTotal(subtotal)
       clearCart()
       setDone(true)
@@ -193,20 +238,30 @@ export default function CheckoutPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button
-              onClick={placeOrder}
-              disabled={submitting}
-              className="w-full sm:w-auto sm:self-start rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 px-12 disabled:opacity-60"
-            >
-              {submitting ? (
-                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Placing order…</span>
-              ) : (
-                `Place order · $${subtotal.toFixed(2)}`
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground -mt-4">
-              No card is charged here — we confirm your total and payment (Zelle, Cash App, card, or in person)
-              before anything is due.
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={payByCard}
+                disabled={submitting}
+                className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
+              >
+                {submitting ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
+                ) : (
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card · ${subtotal.toFixed(2)}</span>
+                )}
+              </Button>
+              <button
+                type="button"
+                onClick={placeOrder}
+                disabled={submitting}
+                className="w-full rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors disabled:opacity-60"
+              >
+                Place order, pay another way
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
+              <b className="text-foreground/80">Pay by card</b> uses secure Stripe checkout — your card never touches
+              this site. Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
             </p>
           </div>
 
