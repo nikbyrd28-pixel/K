@@ -85,7 +85,28 @@ Send that one code to your helper.
 
 ---
 
-## 4. Who does what
+## 4. Get a text/email the second an order comes in
+
+The site can email you the moment someone checks out — name, items, and total —
+so you never miss an order. It's already wired; it just needs one free key.
+
+**Set it up (about 3 minutes):**
+1. Go to **resend.com** and create a free account with your business email.
+2. On the left, click **API Keys** → **Create API Key** → give it any name → **Add**.
+3. Copy the key (it starts with `re_...`).
+4. Send that key to your helper. They add it to the site's secure settings and
+   alerts turn on. By default they go to **hubsbabydoll@gmail.com** — tell your
+   helper if you'd like them sent somewhere else.
+
+> Prefer a **text message** instead of email? Tell your helper — the same alert
+> can be sent by text with a different free service. Email is the simplest to start.
+
+Even before this is turned on, **no order is ever lost** — every order is saved
+in your TB Command dashboard the instant it's placed.
+
+---
+
+## 5. Who does what
 
 | You want to…                         | Where                                   |
 |--------------------------------------|-----------------------------------------|
