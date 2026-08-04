@@ -33,6 +33,8 @@ export default function CheckoutPage() {
     address: '', address2: '', city: '', state: '', zip: '',
     method: 'Ship to me', notes: '',
   })
+  const [isGift, setIsGift] = useState(false)
+  const [giftMessage, setGiftMessage] = useState('')
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -65,6 +67,7 @@ export default function CheckoutPage() {
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
       `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
+      (isGift ? `🎁 GIFT${giftMessage ? ` — message: "${giftMessage}"` : ''}\n` : '') +
       (form.notes ? `Notes: ${form.notes}\n` : '')
     const res = await fetch(`${SUPA_URL}/rest/v1/client_leads`, {
       method: 'POST',
@@ -275,9 +278,31 @@ export default function CheckoutPage() {
                   onChange={set('notes')}
                   rows={3}
                   className="bg-input border border-border rounded-none px-4 py-3 text-foreground focus:outline-none focus:border-primary resize-y"
-                  placeholder="Gift message, scent swaps, delivery timing…"
+                  placeholder="Scent swaps, delivery timing…"
                 />
               </label>
+
+              <div className="border border-border rounded-sm p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isGift}
+                    onChange={(e) => setIsGift(e.target.checked)}
+                    className="w-4 h-4 accent-[var(--color-primary)]"
+                  />
+                  <span className="text-sm">🎁 This is a gift</span>
+                </label>
+                {isGift && (
+                  <textarea
+                    value={giftMessage}
+                    onChange={(e) => setGiftMessage(e.target.value)}
+                    rows={2}
+                    maxLength={300}
+                    className="mt-3 w-full bg-input border border-border rounded-none px-4 py-3 text-foreground focus:outline-none focus:border-primary resize-y"
+                    placeholder="Add a gift message — we'll write it on a card…"
+                  />
+                )}
+              </div>
             </fieldset>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
