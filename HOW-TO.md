@@ -38,6 +38,19 @@ the whole thing — you never have to touch any code.
 > `lib/catalog.ts`), so even if something goes wrong, the shop is never empty.
 > Day to day, just use the Dashboard.
 
+### 🎁 Rewards
+Create discount codes for sales, loyal customers, or thank-you gifts:
+- **Create a code** — pick a name (like `THANKYOU`), choose **% off** or **$ off**,
+  set the amount, and optionally a max number of uses or a minimum spend.
+- **Turn off / delete** any code anytime.
+- Customers type the code at checkout and the total updates.
+
+You already have a starter code live: **`WELCOME10`** (10% off).
+
+**Referrals** happen automatically — after checkout, customers can get a personal
+code to share (their friend gets 10% off). Those show up here under "customer
+referral codes" so you can see who's spreading the word and thank them.
+
 ---
 
 ## 3. Turn on card payments
