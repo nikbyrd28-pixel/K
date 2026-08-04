@@ -115,6 +115,33 @@ export default function CheckoutPage() {
     }
   }
 
+  // Pay now with a card via Square hosted checkout.
+  const payBySquare = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
+    setSubmitting(true)
+    try {
+      await recordOrder('Square (pending)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-checkout`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          items: cart.map((i) => ({ name: i.title, amount: i.price, quantity: i.quantity })),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start Square checkout.')
+      window.location.href = data.url
+    } catch (e) {
+      setSubmitting(false)
+      setError(e instanceof Error ? e.message : 'Could not start Square checkout.')
+    }
+  }
+
   // Place the order now and arrange payment after (tap-to-pay / invoice).
   const placeOrder = async () => {
     setError(null)
@@ -240,28 +267,36 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col gap-3">
               <Button
-                onClick={payByCard}
+                onClick={payBySquare}
                 disabled={submitting}
                 className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card · ${subtotal.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${subtotal.toFixed(2)}</span>
                 )}
               </Button>
               <button
                 type="button"
-                onClick={placeOrder}
+                onClick={payByCard}
                 disabled={submitting}
                 className="w-full rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors disabled:opacity-60"
+              >
+                <span className="inline-flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card (Stripe)</span>
+              </button>
+              <button
+                type="button"
+                onClick={placeOrder}
+                disabled={submitting}
+                className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
               >
                 Place order, pay another way
               </button>
             </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
-              <b className="text-foreground/80">Pay by card</b> uses secure Stripe checkout — your card never touches
-              this site. Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
+              Card payments are handled on a secure hosted page — your card never touches this site.
+              Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
             </p>
           </div>
 
