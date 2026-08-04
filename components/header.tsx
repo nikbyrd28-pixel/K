@@ -9,6 +9,7 @@ import { useShoppingCart } from './shopping-cart-provider'
 
 const NAV_LINKS = [
   { href: '/shop', label: 'Shop' },
+  { href: '/quiz', label: 'Find Your Scent' },
   { href: '/about', label: 'Our Story' },
   { href: '/faq', label: 'FAQ' },
 ]

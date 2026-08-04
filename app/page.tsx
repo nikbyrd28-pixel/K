@@ -218,12 +218,35 @@ function StoryTeaser() {
   )
 }
 
+function QuizTeaser() {
+  return (
+    <section className="py-16 lg:py-20 bg-primary/[0.06] border-y border-border">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span className="text-xs uppercase tracking-[0.3em] text-primary">Not sure where to start?</span>
+        <h2 className="font-serif text-3xl lg:text-4xl mt-4 mb-5 text-balance">
+          Take the 30-second scent quiz.
+        </h2>
+        <p className="text-muted-foreground leading-relaxed mb-8 max-w-lg mx-auto text-pretty">
+          Answer three quick questions and we&apos;ll match you with the oil, butter, or gift set
+          made for you — or the perfect person to gift.
+        </p>
+        <Button
+          size="lg"
+          render={<Link href="/quiz">Find Your Scent</Link>}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-10 h-12 text-xs uppercase tracking-[0.2em]"
+        />
+      </div>
+    </section>
+  )
+}
+
 export default function Home() {
   return (
     <>
       <HeroSection />
       <MarqueeBar />
       <CategoryStrip />
+      <QuizTeaser />
       <FeaturedProducts />
       <CollectionShowcase />
       <RoutineSection />
