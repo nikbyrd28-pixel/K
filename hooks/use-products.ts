@@ -233,8 +233,16 @@ export function useProducts() {
     // Only show products that have a real photo so the grid stays polished
     .filter((product) => product.image)
 
+  // The beard-care line isn't in Shopify yet. Since orders are placed via
+  // email/Instagram (not Shopify checkout), append it to the live catalog so
+  // it shows and is orderable alongside the real Shopify products.
+  const beardExtras = FALLBACK_PRODUCTS.filter(
+    (p) => p.handle.includes('beard') && !apiProducts.some((a) => a.handle === p.handle),
+  )
+
   // Use API products if available, otherwise fall back to demo products
-  const products = apiProducts.length > 0 ? apiProducts : FALLBACK_PRODUCTS
+  const products =
+    apiProducts.length > 0 ? [...apiProducts, ...beardExtras] : FALLBACK_PRODUCTS
 
   return {
     products,
