@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from './shopping-cart-provider'
@@ -13,7 +14,6 @@ export function CartDrawer() {
     subtotal,
     updateQuantity,
     removeFromCart,
-    checkout,
     cartCount,
   } = useShoppingCart()
 
@@ -119,15 +119,16 @@ export function CartDrawer() {
               <span className="font-serif text-2xl text-primary">${subtotal.toFixed(2)}</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              No online payment — send your order and we&apos;ll personally confirm your total,
-              availability, and pickup or delivery.
+              No card charged online — you&apos;ll add your details, then we confirm your total,
+              availability, and payment personally.
             </p>
-            <Button
-              onClick={checkout}
-              className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-12"
+            <Link
+              href="/checkout"
+              onClick={closeCart}
+              className="w-full inline-flex items-center justify-center rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-12 font-medium transition-colors"
             >
-              Email My Order
-            </Button>
+              Proceed to Checkout
+            </Link>
             <a
               href="https://www.instagram.com/hubs_babydoll"
               target="_blank"
