@@ -14,10 +14,19 @@ const SUPA_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYmppcWR3emdramttcXlqc21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzc1NTEsImV4cCI6MjA5OTk1MzU1MX0.Naocw-B0B6Z7CLg197yxLezd58a6f5XoMLEiea5b0Ro'
 const CLIENT = 'hubsandbabydoll'
 
+// Payment handles — fill these in to turn on one-tap payment at checkout.
+// (Leave blank and customers are told you'll send a payment request.)
+const PAY = {
+  cashApp: '', // your $Cashtag, without the $  e.g. 'HubsBabydoll'
+  venmo: '', // your Venmo username, without the @
+  paypal: '', // your PayPal.Me username
+}
+
 export default function CheckoutPage() {
   const { cart, subtotal, cartCount, clearCart } = useShoppingCart()
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [paidTotal, setPaidTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '', email: '', phone: '',
@@ -69,6 +78,7 @@ export default function CheckoutPage() {
         }),
       })
       if (!res.ok) throw new Error('http ' + res.status)
+      setPaidTotal(subtotal)
       clearCart()
       setDone(true)
       window.scrollTo(0, 0)
@@ -86,14 +96,21 @@ export default function CheckoutPage() {
           <Check className="w-7 h-7 text-primary" />
         </div>
         <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
-        <p className="text-muted-foreground leading-relaxed mb-10 text-pretty">
-          Thank you — {form.name.split(' ')[0]}, we&apos;ve got your order. We&apos;ll reach out shortly to
-          confirm your total, availability, and payment. Every piece is handmade in small batches with care.
+        <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
+          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your
+          payment below and we&apos;ll get it handmade and on its way.
         </p>
-        <Button
-          render={<Link href="/shop">Continue shopping</Link>}
-          className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-12 px-9"
-        />
+
+        <PaymentBox total={paidTotal} />
+
+        <div className="mt-10">
+          <Link
+            href="/shop"
+            className="text-xs uppercase tracking-[0.2em] text-primary border-b border-primary/40 pb-1 hover:border-primary transition-colors"
+          >
+            Continue shopping
+          </Link>
+        </div>
       </section>
     )
   }
@@ -244,5 +261,48 @@ function Field({
         className="bg-input border border-border rounded-none px-4 h-12 text-foreground focus:outline-none focus:border-primary"
       />
     </label>
+  )
+}
+
+function PaymentBox({ total }: { total: number }) {
+  const amt = total.toFixed(2)
+  const methods = [
+    PAY.cashApp && { name: 'Cash App', href: `https://cash.app/$${PAY.cashApp}/${amt}` },
+    PAY.paypal && { name: 'PayPal', href: `https://paypal.me/${PAY.paypal}/${amt}` },
+    PAY.venmo && {
+      name: 'Venmo',
+      href: `https://venmo.com/${PAY.venmo}?txn=pay&amount=${amt}&note=${encodeURIComponent('Hubs & Babydoll order')}`,
+    },
+  ].filter(Boolean) as { name: string; href: string }[]
+
+  return (
+    <div className="mx-auto max-w-sm border border-primary/30 bg-card rounded-sm p-6 text-left">
+      <div className="flex items-center justify-between mb-5">
+        <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Amount due</span>
+        <span className="font-serif text-3xl text-primary">${amt}</span>
+      </div>
+      {methods.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {methods.map((m) => (
+            <a
+              key={m.name}
+              href={m.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-12 font-medium transition-colors"
+            >
+              Pay with {m.name}
+            </a>
+          ))}
+          <p className="text-[11px] text-muted-foreground mt-1 text-center">
+            Opens the app with your total filled in — every order is confirmed by hand.
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          We&apos;ll send you a quick payment request to finish up — thank you for your patience.
+        </p>
+      )}
+    </div>
   )
 }
