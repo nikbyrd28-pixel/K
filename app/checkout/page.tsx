@@ -86,6 +86,23 @@ export default function CheckoutPage() {
       }),
     })
     if (!res.ok) throw new Error('http ' + res.status)
+
+    // Fire an email alert to the owner (turns on once RESEND_API_KEY is set;
+    // no-ops otherwise). Fire-and-forget — never blocks or fails the order.
+    fetch(`${SUPA_URL}/functions/v1/hb-notify`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        total: subtotal.toFixed(2),
+        method: form.method,
+        ship,
+        payment: payLabel,
+        items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
+      }),
+    }).catch(() => {})
   }
 
   // Pay now with a card via Stripe hosted checkout.
