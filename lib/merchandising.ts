@@ -14,66 +14,27 @@ export type Merch = {
   ingredients?: string
 }
 
-// Curated merchandising (names, short copy, ounce pricing, badges, order) keyed by
-// the stable Shopify product handle. Images + variant IDs still come live from Shopify.
-export const MERCHANDISING: Record<string, Merch> = {
-  'bay-rum-8-oz-body-box': {
-    order: 1,
-    name: 'HEARD Bay Rum Box',
-    description:
-      'For the man who carries a lot and rarely asks for anything in return. The HEARD Gift Box is a curated grooming experience.',
-    sizes: [
-      { label: 'One size', price: 50 },
-    ],
-  },
-  'harmony-bay-rum-body-oil': {
-    order: 2,
-    name: 'Harmony Bay Rum Body Oil',
-    description: 'A lightweight blend of jojoba, sweet almond, flaxseed, castor oils, and Vitamin E with notes of Bay Rum.',
-    sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
-    ],
-  },
-  'moment-body-butter': {
-    order: 3,
-    name: 'Moment Body Butter',
-    description: 'Pure nourishment. No fragrance. No fuss. A thoughtfully balanced blend of nature\'s most nourishing butters and oils.',
-    sizes: [
-      { label: '2 oz', price: 10 },
-      { label: '4 oz', price: 20 },
-    ],
-  },
-  'jasmine-gardenia-8-oz-body-box': {
-    order: 4,
-    name: 'SEEN Jasmine & Gardenia Box',
-    description:
-      'The SEEN Gift Box is a moment of care that says, "I see you. You deserve care, too."',
-    sizes: [
-      { label: '2 oz box', price: 40, badge: 'Most Popular' },
-      { label: '4 oz box', price: 55 },
-    ],
-  },
-  'harmony-jasmine-gardenia-body-oil': {
-    order: 5,
-    name: 'Harmony Jasmine Gardenia Body Oil',
-    description:
-      'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils, enriched with Vitamin E, with notes of Jasmine and Gardenia.',
-    sizes: [
-      { label: '2 oz bottle', price: 15 },
-      { label: '4 oz bottle', price: 25 },
-    ],
-  },
-  'lavender-4-oz-body-box-inside': {
-    order: 6,
-    name: 'SEEN Lavender Box',
-    description:
-      'A gentle reminder to slow down, breathe deeply, and pour a little of that love back in.',
-    sizes: [
-      { label: '2 oz box', price: 40 },
-    ],
-  },
-}
+import { CATALOG } from './catalog'
+
+// Names, copy, sizes, prices, and badges all come from ONE place: lib/catalog.ts.
+// This just reshapes that list into the lookup the product pages use, so the
+// owner only ever edits catalog.ts. Keyed by product handle; order = list order.
+export const MERCHANDISING: Record<string, Merch> = Object.fromEntries(
+  CATALOG.map((item, index) => [
+    item.handle,
+    {
+      order: index + 1,
+      name: item.name,
+      description: item.description,
+      sizes: item.sizes.map((s) => ({
+        label: s.size,
+        price: s.price,
+        soldOut: s.soldOut,
+        badge: s.badge,
+      })),
+    },
+  ]),
+)
 
 export interface ProductLike {
   handle: string
