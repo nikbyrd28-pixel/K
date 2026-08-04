@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
+import { ReferFriend } from '@/components/refer-friend'
 
 // Orders are captured into TB Command (the shared Supabase backend) so they
 // appear in the owner's dashboard. This anon key is a public, insert-only key.
@@ -36,6 +37,50 @@ export default function CheckoutPage() {
   const [isGift, setIsGift] = useState(false)
   const [giftMessage, setGiftMessage] = useState('')
 
+  // Reward / referral code
+  const [code, setCode] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [codeLabel, setCodeLabel] = useState('')
+  const [codeMsg, setCodeMsg] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
+
+  const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
+  const appliedCode = discount > 0 ? code.toUpperCase() : ''
+  // Payment amounts are scaled so the charged total matches the discounted total.
+  const payItems = () => {
+    const factor = subtotal > 0 ? total / subtotal : 1
+    return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
+  }
+
+  const applyCode = async () => {
+    const c = code.trim()
+    if (!c) return
+    setChecking(true)
+    setCodeMsg(null)
+    try {
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'validate', code: c, subtotal }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setDiscount(data.discount)
+        setCodeLabel(data.label || 'Discount')
+        setCode(data.code || c.toUpperCase())
+        setCodeMsg(null)
+      } else {
+        setDiscount(0)
+        setCodeLabel('')
+        setCodeMsg(data.message || 'That code isn’t valid.')
+      }
+    } catch {
+      setCodeMsg('Could not check that code — please try again.')
+    } finally {
+      setChecking(false)
+    }
+  }
+
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -65,6 +110,7 @@ export default function CheckoutPage() {
         : form.method
     const message =
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
+      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\nTotal: $${total.toFixed(2)}\n` : '') +
       `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
       (isGift ? `🎁 GIFT${giftMessage ? ` — message: "${giftMessage}"` : ''}\n` : '') +
@@ -83,12 +129,21 @@ export default function CheckoutPage() {
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${subtotal.toFixed(2)} · ${payLabel}`,
+        service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${total.toFixed(2)}${appliedCode ? ` · ${appliedCode}` : ''} · ${payLabel}`,
         pickup: ship,
         message,
       }),
     })
     if (!res.ok) throw new Error('http ' + res.status)
+
+    // Count the code redemption (best-effort; never blocks the order).
+    if (appliedCode) {
+      fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'redeem', code: appliedCode }),
+      }).catch(() => {})
+    }
 
     // Fire an email alert to the owner (turns on once RESEND_API_KEY is set;
     // no-ops otherwise). Fire-and-forget — never blocks or fails the order.
@@ -99,10 +154,10 @@ export default function CheckoutPage() {
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        total: subtotal.toFixed(2),
+        total: total.toFixed(2),
         method: form.method,
         ship,
-        payment: payLabel,
+        payment: payLabel + (appliedCode ? ` · code ${appliedCode}` : ''),
         items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
       }),
     }).catch(() => {})
@@ -123,7 +178,7 @@ export default function CheckoutPage() {
           name: form.name.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
-          items: cart.map((i) => ({ name: i.title, amount: i.price, quantity: i.quantity })),
+          items: payItems(),
         }),
       })
       const data = await res.json()
@@ -150,7 +205,7 @@ export default function CheckoutPage() {
           name: form.name.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
-          items: cart.map((i) => ({ name: i.title, amount: i.price, quantity: i.quantity })),
+          items: payItems(),
         }),
       })
       const data = await res.json()
@@ -170,7 +225,7 @@ export default function CheckoutPage() {
     setSubmitting(true)
     try {
       await recordOrder('Pay on confirmation')
-      setPaidTotal(subtotal)
+      setPaidTotal(total)
       clearCart()
       setDone(true)
       window.scrollTo(0, 0)
@@ -194,6 +249,8 @@ export default function CheckoutPage() {
         </p>
 
         <PaymentBox total={paidTotal} />
+
+        <ReferFriend defaultEmail={form.email} />
 
         <div className="mt-10">
           <Link
@@ -316,7 +373,7 @@ export default function CheckoutPage() {
                 {submitting ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${subtotal.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${total.toFixed(2)}</span>
                 )}
               </Button>
               <button
@@ -359,9 +416,56 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between border-t border-border mt-5 pt-5">
-              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Estimated total</span>
-              <span className="font-serif text-2xl text-primary">${subtotal.toFixed(2)}</span>
+            {/* Reward / referral code */}
+            <div className="border-t border-border mt-5 pt-5">
+              {appliedCode ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-primary">Code {appliedCode} · {codeLabel}</span>
+                  <button
+                    onClick={() => { setDiscount(0); setCode(''); setCodeLabel(''); setCodeMsg(null) }}
+                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyCode())}
+                      placeholder="Reward or referral code"
+                      className="flex-1 bg-input border border-border rounded-none px-3 h-11 text-sm text-foreground focus:outline-none focus:border-primary uppercase"
+                    />
+                    <button
+                      onClick={applyCode}
+                      disabled={checking || !code.trim()}
+                      className="rounded-none border border-primary/40 text-primary hover:bg-primary/10 text-xs uppercase tracking-[0.15em] px-4 h-11 disabled:opacity-50"
+                    >
+                      {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                    </button>
+                  </div>
+                  {codeMsg && <p className="text-xs text-destructive mt-2">{codeMsg}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-border mt-5 pt-5 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex items-center justify-between text-sm text-primary">
+                  <span>Discount ({codeLabel})</span>
+                  <span>−${discount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Estimated total</span>
+                <span className="font-serif text-2xl text-primary">${total.toFixed(2)}</span>
+              </div>
             </div>
           </aside>
         </div>

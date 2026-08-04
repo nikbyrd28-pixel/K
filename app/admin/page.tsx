@@ -26,7 +26,7 @@ type Order = {
 export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
-  const [tab, setTab] = useState<'orders' | 'products'>('orders')
+  const [tab, setTab] = useState<'orders' | 'products' | 'rewards'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -121,21 +121,23 @@ export default function AdminPage() {
       </div>
 
       <div className="flex gap-2 mb-8 border-b border-border">
-        {(['orders', 'products'] as const).map((t) => (
+        {(['orders', 'products', 'rewards'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={[
-              'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors',
+              'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors capitalize',
               tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
             ].join(' ')}
           >
-            {t === 'orders' ? 'Orders' : 'Products'}
+            {t}
           </button>
         ))}
       </div>
 
-      {tab === 'orders' ? <OrdersTab call={call} /> : <ProductsTab call={call} />}
+      {tab === 'orders' && <OrdersTab call={call} />}
+      {tab === 'products' && <ProductsTab call={call} />}
+      {tab === 'rewards' && <RewardsTab call={call} />}
     </section>
   )
 }
@@ -500,6 +502,202 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+//  REWARDS (discount + referral codes)
+// ---------------------------------------------------------------------------
+type Code = {
+  code: string
+  kind: 'percent' | 'amount'
+  value: number
+  active: boolean
+  max_uses: number | null
+  used_count: number
+  min_subtotal: number
+  referrer_email: string | null
+  note: string
+}
+
+function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [codes, setCodes] = useState<Code[] | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [okMsg, setOkMsg] = useState<string | null>(null)
+  const [draft, setDraft] = useState({ code: '', kind: 'percent' as 'percent' | 'amount', value: '10', max_uses: '', min_subtotal: '', note: '' })
+
+  const load = useCallback(async () => {
+    setErr(null)
+    try {
+      const data = await call('discounts')
+      setCodes(data.codes || [])
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not load codes.')
+    }
+  }, [call])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const flash = (m: string) => {
+    setOkMsg(m)
+    setTimeout(() => setOkMsg(null), 2500)
+  }
+
+  const create = async () => {
+    if (!draft.code.trim()) return setErr('Enter a code (letters and numbers).')
+    setErr(null)
+    try {
+      await call('discount_save', {
+        discount: {
+          code: draft.code,
+          kind: draft.kind,
+          value: parseFloat(draft.value) || 0,
+          max_uses: draft.max_uses === '' ? null : parseInt(draft.max_uses),
+          min_subtotal: parseFloat(draft.min_subtotal) || 0,
+          note: draft.note,
+          active: true,
+        },
+      })
+      setDraft({ code: '', kind: 'percent', value: '10', max_uses: '', min_subtotal: '', note: '' })
+      flash('Code created ✓')
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not create code.')
+    }
+  }
+
+  const toggle = async (c: Code) => {
+    try {
+      await call('discount_save', {
+        discount: { code: c.code, kind: c.kind, value: c.value, max_uses: c.max_uses, min_subtotal: c.min_subtotal, note: c.note, active: !c.active },
+      })
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not update.')
+    }
+  }
+
+  const del = async (c: Code) => {
+    if (!confirm(`Delete code ${c.code}?`)) return
+    try {
+      await call('discount_delete', { code: c.code })
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not delete.')
+    }
+  }
+
+  if (!codes) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+
+  const referrals = codes.filter((c) => c.referrer_email)
+  const regular = codes.filter((c) => !c.referrer_email)
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Create */}
+      <div className="border border-border rounded-sm p-5 bg-card">
+        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Create a reward code</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input
+            value={draft.code}
+            onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })}
+            placeholder="CODE e.g. THANKYOU"
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm uppercase focus:outline-none focus:border-primary"
+          />
+          <div className="flex gap-2">
+            <select
+              value={draft.kind}
+              onChange={(e) => setDraft({ ...draft, kind: e.target.value as 'percent' | 'amount' })}
+              className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+            >
+              <option value="percent">% off</option>
+              <option value="amount">$ off</option>
+            </select>
+            <input
+              type="number"
+              min="0"
+              value={draft.value}
+              onChange={(e) => setDraft({ ...draft, value: e.target.value })}
+              placeholder="10"
+              className="flex-1 bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+            />
+          </div>
+          <input
+            type="number"
+            min="1"
+            value={draft.max_uses}
+            onChange={(e) => setDraft({ ...draft, max_uses: e.target.value })}
+            placeholder="Max uses (blank = unlimited)"
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+          />
+          <input
+            type="number"
+            min="0"
+            value={draft.min_subtotal}
+            onChange={(e) => setDraft({ ...draft, min_subtotal: e.target.value })}
+            placeholder="Minimum spend $ (optional)"
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+          />
+        </div>
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          <button
+            onClick={create}
+            className="inline-flex items-center gap-2 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.18em] h-11 px-5"
+          >
+            <Plus className="w-4 h-4" /> Create code
+          </button>
+          {okMsg && <span className="text-sm text-primary">{okMsg}</span>}
+          {err && <span className="text-sm text-destructive">{err}</span>}
+        </div>
+      </div>
+
+      {/* Regular codes */}
+      <div>
+        <p className="text-sm text-muted-foreground mb-3">{regular.length} reward code{regular.length === 1 ? '' : 's'}</p>
+        <div className="flex flex-col gap-2">
+          {regular.map((c) => (
+            <CodeRow key={c.code} c={c} onToggle={() => toggle(c)} onDelete={() => del(c)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Referrals */}
+      {referrals.length > 0 && (
+        <div>
+          <p className="text-sm text-muted-foreground mb-1">{referrals.length} customer referral code{referrals.length === 1 ? '' : 's'}</p>
+          <p className="text-xs text-muted-foreground mb-3">Codes your customers shared with friends — reach out to thank the ones with uses.</p>
+          <div className="flex flex-col gap-2">
+            {referrals.map((c) => (
+              <CodeRow key={c.code} c={c} onToggle={() => toggle(c)} onDelete={() => del(c)} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CodeRow({ c, onToggle, onDelete }: { c: Code; onToggle: () => void; onDelete: () => void }) {
+  return (
+    <div className={`flex items-center gap-3 border rounded-sm px-4 py-3 flex-wrap ${c.active ? 'border-border bg-card' : 'border-border/50 opacity-60'}`}>
+      <span className="font-serif text-lg tracking-wider text-primary">{c.code}</span>
+      <span className="text-xs text-muted-foreground">
+        {c.kind === 'amount' ? `$${c.value} off` : `${c.value}% off`}
+        {c.min_subtotal > 0 ? ` · min $${c.min_subtotal}` : ''}
+        {` · used ${c.used_count}${c.max_uses != null ? `/${c.max_uses}` : ''}`}
+        {c.referrer_email ? ` · from ${c.referrer_email}` : ''}
+      </span>
+      <div className="ml-auto flex items-center gap-2">
+        <button onClick={onToggle} className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary">
+          {c.active ? 'Turn off' : 'Turn on'}
+        </button>
+        <button onClick={onDelete} className="text-muted-foreground hover:text-destructive" aria-label={`Delete ${c.code}`}>
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   )
