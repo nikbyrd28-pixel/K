@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { CATALOG } from '@/lib/catalog'
 
 const siteUrl = 'https://hubsandbabydoll.com'
 
@@ -13,7 +14,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/refund-policy', priority: 0.3, changeFrequency: 'yearly' },
   ]
 
-  return routes.map((route) => ({
+  // Every product page, so Google can index the full catalog.
+  const productRoutes = CATALOG.map((item) => ({
+    path: `/shop/${item.handle}`,
+    priority: 0.8,
+    changeFrequency: 'weekly' as const,
+  }))
+
+  return [...routes, ...productRoutes].map((route) => ({
     url: `${siteUrl}${route.path === '/' ? '' : route.path}`,
     lastModified: now,
     changeFrequency: route.changeFrequency,

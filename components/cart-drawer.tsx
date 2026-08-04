@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from './shopping-cart-provider'
+import { useProducts } from '@/hooks/use-products'
+import { getMerch } from '@/lib/merchandising'
 
 export function CartDrawer() {
   const {
@@ -109,6 +111,9 @@ export function CartDrawer() {
           </div>
         )}
 
+        {/* Complete your order — gentle cross-sell */}
+        {cart.length > 0 && <CompleteYourOrder />}
+
         {/* Footer */}
         {cart.length > 0 && (
           <div className="border-t border-border px-6 py-6 flex flex-col gap-4">
@@ -141,5 +146,62 @@ export function CartDrawer() {
         )}
       </aside>
     </>
+  )
+}
+
+// Suggests a couple of products not already in the cart — one tap to add.
+function CompleteYourOrder() {
+  const { cart, addToCart } = useShoppingCart()
+  const { products } = useProducts()
+
+  const inCart = (name: string) => cart.some((i) => i.title.startsWith(name))
+
+  const suggestions = products
+    .map((product) => ({ product, merch: getMerch(product) }))
+    .filter(({ merch }) => !merch.allSoldOut && !inCart(merch.name))
+    .slice(0, 2)
+
+  if (suggestions.length === 0) return null
+
+  return (
+    <div className="border-t border-border px-6 py-5">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
+        Complete your order
+      </p>
+      <div className="flex flex-col gap-3">
+        {suggestions.map(({ product, merch }) => {
+          const size = merch.sizes.find((s) => !s.soldOut) ?? merch.sizes[0]
+          return (
+            <div key={product.handle} className="flex items-center gap-3">
+              <div className="relative w-12 h-12 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
+                {product.image && (
+                  <Image src={product.image} alt={merch.name} fill className="object-cover" sizes="48px" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm leading-snug truncate">{merch.name}</p>
+                <p className="text-xs text-primary mt-0.5">${size.price.toFixed(2)}</p>
+              </div>
+              <button
+                onClick={() =>
+                  addToCart({
+                    id: size.variantId ?? `${product.id}-${size.label}`,
+                    variantId: size.variantId ?? product.variantId,
+                    title: `${merch.name} — ${size.label}`,
+                    price: size.price,
+                    quantity: 1,
+                    image: product.image,
+                  })
+                }
+                className="flex-shrink-0 inline-flex items-center gap-1 border border-primary/40 text-primary hover:bg-primary/10 text-[11px] uppercase tracking-[0.14em] px-3 h-9 transition-colors"
+                aria-label={`Add ${merch.name}`}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
