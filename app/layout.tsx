@@ -111,13 +111,35 @@ export default function RootLayout({
 }>) {
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Brand',
-    name: siteName,
-    url: siteUrl,
-    description,
-    logo: `${siteUrl}/logo.png`,
-    image: `${siteUrl}/hero.png`,
-    slogan: 'Those who pour into others deserve to be poured into',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: siteName,
+        url: siteUrl,
+        description,
+        logo: `${siteUrl}/logo.png`,
+        image: `${siteUrl}/hero.png`,
+        slogan: 'Those who pour into others deserve to be poured into',
+        sameAs: ['https://www.instagram.com/hubs_babydoll'],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        name: siteName,
+        url: siteUrl,
+        description,
+        publisher: { '@id': `${siteUrl}/#organization` },
+        inLanguage: 'en-US',
+      },
+      {
+        '@type': 'OnlineStore',
+        name: siteName,
+        url: `${siteUrl}/shop`,
+        image: `${siteUrl}/hero.png`,
+        parentOrganization: { '@id': `${siteUrl}/#organization` },
+      },
+    ],
   }
 
   return (

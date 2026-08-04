@@ -73,8 +73,32 @@ export default function ProductDetailPage() {
 
   const related = products.filter((p) => p.handle !== product.handle).slice(0, 3)
 
+  const inStock = !allSoldOut
+  const prices = sizes.filter((s) => !s.soldOut).map((s) => s.price)
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name,
+    description,
+    image: product.image ? `https://hubsandbabydoll.com${product.image}` : undefined,
+    brand: { '@type': 'Brand', name: 'Hubs & Babydoll' },
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'USD',
+      lowPrice: prices.length ? Math.min(...prices) : sel.price,
+      highPrice: prices.length ? Math.max(...prices) : sel.price,
+      offerCount: sizes.length,
+      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: `https://hubsandbabydoll.com/shop/${product.handle}`,
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <Link
           href="/shop"
