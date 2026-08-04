@@ -1,47 +1,42 @@
 # Hubs & Babydoll — Simple Owner Guide 💛
 
-Everything you need to run the site, in plain English. No coding required for
-day-to-day changes.
+Everything you need to run the shop yourself — no coding, no helper needed.
 
 ---
 
-## 1. Change a price (30 seconds)
+## 1. Your Dashboard — where you do everything
 
-All your products, prices, and descriptions live in **one file**:
+Go to **yoursite.com/admin** and sign in with your dashboard password
+(your helper gives you this — you can change it later).
 
-```
-lib/catalog.ts
-```
+Your password to start: **HubsBabydoll2025** *(please change this once you're set up)*
 
-Open it. Find the product. Change the number after `price:`. Save. That's it —
-the shop, the cart, and the checkout total all update automatically.
+Inside you have two tabs:
 
-```
-{ size: '2 oz', price: 15 }      ->  change to  ->  { size: '2 oz', price: 18 }
-```
+### 🧾 Orders
+Every order shows up here the second someone checks out — name, phone, email,
+what they ordered, the total, and how they want it (ship / pickup / delivery).
+Click **Refresh** to check for new ones. Nothing is ever lost.
 
-You can also, in that same file:
-- **Change wording** — edit the text between the quotes on the `description:` line.
-- **Mark sold out** — add `, soldOut: true` after a price.
-- **Add a tag** — add `, badge: 'Most Popular'` after a price.
+### 🛍️ Products
+Manage your whole shop here. For any product you can:
+- **Change the price** — type a new number in the price box.
+- **Change a photo** — click **Photo**, pick a picture from your phone or
+  computer. It uploads and updates the site by itself.
+- **Change the name or description** — just type over it.
+- **Mark a size sold out** — check the **Sold out** box.
+- **Hide / Show** — click **Hide** to take something off the shop (it stays
+  saved), **Show** to put it back.
+- **Add a new product** — click **➕ Add product**, fill in the name, price, and
+  photo, then **Save**.
+- **Delete** — remove a product for good.
 
-> Prices with a `// GUESS` note next to them are estimates I filled in. Change
-> them to your real prices whenever you like.
+Click **Save** after edits and the live site updates within a few seconds. That's
+the whole thing — you never have to touch any code.
 
----
-
-## 2. Where your orders show up
-
-Every order placed on the site is saved into **TB Command** (your dashboard),
-in the `client_leads` list. Each order includes:
-
-- Customer name, phone, and email
-- What they ordered and the total
-- How they want it (ship, local pickup, delivery, or event)
-- Their shipping address and any notes
-
-Nothing is lost — even if a customer picks "pay another way," the order is
-recorded so you can follow up.
+> 💡 The site also has a built-in backup copy of your products (in the file
+> `lib/catalog.ts`), so even if something goes wrong, the shop is never empty.
+> Day to day, just use the Dashboard.
 
 ---
 
