@@ -6,10 +6,18 @@ Everything you need to run the shop yourself — no coding, no helper needed.
 
 ## 1. Your Dashboard — where you do everything
 
-Go to **yoursite.com/admin** and sign in with your dashboard password
-(your helper gives you this — you can change it later).
+Go to **yoursite.com/admin** and sign in with your own password. There are
+**separate logins** so every edit is labeled with who made it:
 
-Your password to start: **HubsBabydoll2025** *(please change this once you're set up)*
+- **Owner** — password to start: **HubsBabydoll2025**
+- **Nik (helper)** — password to start: **NikBabydoll2025**
+
+*(Please change these once you're set up — see "Team logins" below.)*
+
+### Team logins (Owner only)
+In the **Team** tab you can add a login for anyone, reset a password, or remove
+access — no code needed. Helpers can manage orders, products, and rewards; only
+an Owner can manage logins.
 
 Inside you have two tabs:
 
