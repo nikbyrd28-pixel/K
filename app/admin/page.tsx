@@ -23,20 +23,36 @@ type Order = {
   message?: string
 }
 
+type DashUser = { name: string; role: string }
+
 export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
-  const [tab, setTab] = useState<'orders' | 'products' | 'rewards'>('orders')
+  const [user, setUser] = useState<DashUser | null>(null)
+  const [tab, setTab] = useState<'orders' | 'products' | 'rewards' | 'team'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('hb_pw') : null
+    if (typeof window === 'undefined') return
+    const saved = localStorage.getItem('hb_pw')
     if (saved) {
       setPw(saved)
       setAuthed(true)
     }
+    const savedUser = localStorage.getItem('hb_user')
+    if (savedUser) {
+      try { setUser(JSON.parse(savedUser)) } catch {}
+    }
   }, [])
+
+  const rememberUser = (u: DashUser | null) => {
+    setUser(u)
+    if (typeof window !== 'undefined') {
+      if (u) localStorage.setItem('hb_user', JSON.stringify(u))
+      else localStorage.removeItem('hb_user')
+    }
+  }
 
   const call = useCallback(
     async (action: string, extra: Record<string, unknown> = {}) => {
@@ -58,7 +74,8 @@ export default function AdminPage() {
     setBusy(true)
     try {
       // A lightweight, real password check — asking for orders proves the password.
-      await call('orders')
+      const data = await call('orders')
+      rememberUser(data.user || null)
       localStorage.setItem('hb_pw', pw)
       setAuthed(true)
     } catch (e2) {
@@ -70,8 +87,11 @@ export default function AdminPage() {
 
   const signOut = () => {
     localStorage.removeItem('hb_pw')
+    localStorage.removeItem('hb_user')
     setPw('')
+    setUser(null)
     setAuthed(false)
+    setTab('orders')
   }
 
   if (!authed) {
@@ -111,7 +131,14 @@ export default function AdminPage() {
   return (
     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-serif text-4xl lg:text-5xl">Your Dashboard</h1>
+        <div>
+          <h1 className="font-serif text-4xl lg:text-5xl">Your Dashboard</h1>
+          {user && (
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-2">
+              Signed in as {user.name}{user.role === 'owner' ? ' · Owner' : ''}
+            </p>
+          )}
+        </div>
         <button
           onClick={signOut}
           className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
@@ -121,7 +148,7 @@ export default function AdminPage() {
       </div>
 
       <div className="flex gap-2 mb-8 border-b border-border">
-        {(['orders', 'products', 'rewards'] as const).map((t) => (
+        {(['orders', 'products', 'rewards', ...(user?.role === 'owner' ? ['team'] : [])] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -135,9 +162,10 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {tab === 'orders' && <OrdersTab call={call} />}
+      {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
       {tab === 'products' && <ProductsTab call={call} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
+      {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
     </section>
   )
 }
@@ -145,7 +173,7 @@ export default function AdminPage() {
 // ---------------------------------------------------------------------------
 //  ORDERS
 // ---------------------------------------------------------------------------
-function OrdersTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; onUser?: (u: { name: string; role: string } | null) => void }) {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [subscribers, setSubscribers] = useState<Order[]>([])
   const [err, setErr] = useState<string | null>(null)
@@ -156,6 +184,7 @@ function OrdersTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
     setErr(null)
     try {
       const data = await call('orders')
+      if (data.user && onUser) onUser(data.user)
       setOrders(data.orders || [])
       setSubscribers(data.subscribers || [])
     } catch (e) {
@@ -240,14 +269,20 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
   const [err, setErr] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
 
+  const [editedBy, setEditedBy] = useState<Record<string, string>>({})
+
   const load = useCallback(async () => {
     setErr(null)
     try {
       const res = await fetch(`${SUPA_URL}/rest/v1/hb_products?select=*`, {
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
       })
-      const rows: ProductRow[] = res.ok ? await res.json() : []
-      setItems(mergeCatalog(Array.isArray(rows) ? rows : []))
+      const rows: (ProductRow & { updated_by?: string })[] = res.ok ? await res.json() : []
+      const safe = Array.isArray(rows) ? rows : []
+      const by: Record<string, string> = {}
+      safe.forEach((r) => { if (r.updated_by) by[r.handle] = r.updated_by })
+      setEditedBy(by)
+      setItems(mergeCatalog(safe))
     } catch {
       setItems(mergeCatalog([]))
     }
@@ -498,6 +533,9 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
                     <Trash2 className="w-4 h-4" /> Delete
                   </button>
                 </div>
+                {editedBy[it.handle] && (
+                  <p className="text-[11px] text-muted-foreground">Last edited by {editedBy[it.handle]}</p>
+                )}
               </div>
             </div>
           </div>
@@ -520,6 +558,7 @@ type Code = {
   min_subtotal: number
   referrer_email: string | null
   note: string
+  updated_by?: string
 }
 
 function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
@@ -690,6 +729,7 @@ function CodeRow({ c, onToggle, onDelete }: { c: Code; onToggle: () => void; onD
         {c.min_subtotal > 0 ? ` · min $${c.min_subtotal}` : ''}
         {` · used ${c.used_count}${c.max_uses != null ? `/${c.max_uses}` : ''}`}
         {c.referrer_email ? ` · from ${c.referrer_email}` : ''}
+        {c.updated_by ? ` · by ${c.updated_by}` : ''}
       </span>
       <div className="ml-auto flex items-center gap-2">
         <button onClick={onToggle} className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary">
@@ -698,6 +738,128 @@ function CodeRow({ c, onToggle, onDelete }: { c: Code; onToggle: () => void; onD
         <button onClick={onDelete} className="text-muted-foreground hover:text-destructive" aria-label={`Delete ${c.code}`}>
           <Trash2 className="w-4 h-4" />
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+//  TEAM (separate logins — owner only)
+// ---------------------------------------------------------------------------
+type Admin = { id: string; name: string; role: string; active: boolean }
+
+function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; meName?: string }) {
+  const [admins, setAdmins] = useState<Admin[] | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [okMsg, setOkMsg] = useState<string | null>(null)
+  const [draft, setDraft] = useState({ name: '', password: '', role: 'helper' as 'helper' | 'owner' })
+
+  const load = useCallback(async () => {
+    setErr(null)
+    try {
+      const data = await call('admins')
+      setAdmins(data.admins || [])
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not load logins.')
+    }
+  }, [call])
+
+  useEffect(() => { load() }, [load])
+
+  const flash = (m: string) => { setOkMsg(m); setTimeout(() => setOkMsg(null), 2500) }
+
+  const add = async () => {
+    if (!draft.name.trim()) return setErr('Enter a name.')
+    if (draft.password.trim().length < 4) return setErr('Set a password (at least 4 characters).')
+    setErr(null)
+    try {
+      await call('admin_save', { admin: { name: draft.name, password: draft.password, role: draft.role } })
+      setDraft({ name: '', password: '', role: 'helper' })
+      flash('Login added ✓')
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not add login.')
+    }
+  }
+
+  const resetPw = async (a: Admin) => {
+    const pw = prompt(`New password for ${a.name} (at least 4 characters):`)
+    if (!pw || pw.length < 4) return
+    try {
+      await call('admin_save', { admin: { id: a.id, name: a.name, role: a.role, password: pw } })
+      flash(`Password updated for ${a.name}`)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not update.')
+    }
+  }
+
+  const del = async (a: Admin) => {
+    if (!confirm(`Remove ${a.name}'s login?`)) return
+    try {
+      await call('admin_delete', { id: a.id })
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not remove.')
+    }
+  }
+
+  if (!admins) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+
+  return (
+    <div className="flex flex-col gap-8">
+      <p className="text-sm text-muted-foreground -mt-2">
+        Each person gets their own password, so edits are labeled with who made them.
+      </p>
+
+      <div className="border border-border rounded-sm p-5 bg-card">
+        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Add a login</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input
+            value={draft.name}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+            placeholder="Name"
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+          />
+          <input
+            value={draft.password}
+            onChange={(e) => setDraft({ ...draft, password: e.target.value })}
+            placeholder="Password"
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+          />
+          <select
+            value={draft.role}
+            onChange={(e) => setDraft({ ...draft, role: e.target.value as 'helper' | 'owner' })}
+            className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
+          >
+            <option value="helper">Helper</option>
+            <option value="owner">Owner (full access)</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          <button onClick={add} className="inline-flex items-center gap-2 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.18em] h-11 px-5">
+            <Plus className="w-4 h-4" /> Add login
+          </button>
+          {okMsg && <span className="text-sm text-primary">{okMsg}</span>}
+          {err && <span className="text-sm text-destructive">{err}</span>}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {admins.map((a) => (
+          <div key={a.id} className={`flex items-center gap-3 border rounded-sm px-4 py-3 flex-wrap ${a.active ? 'border-border bg-card' : 'border-border/50 opacity-60'}`}>
+            <span className="font-serif text-lg">{a.name}</span>
+            <span className="text-[11px] uppercase tracking-[0.15em] text-primary border border-primary/30 px-2 py-0.5">{a.role}</span>
+            {a.name === meName && <span className="text-xs text-muted-foreground">(you)</span>}
+            <div className="ml-auto flex items-center gap-3">
+              <button onClick={() => resetPw(a)} className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary">
+                Reset password
+              </button>
+              <button onClick={() => del(a)} className="text-muted-foreground hover:text-destructive" aria-label={`Remove ${a.name}`}>
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
