@@ -14,6 +14,14 @@ const SUPA_URL = 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co'
 const SUPA_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYmppcWR3emdramttcXlqc21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzc1NTEsImV4cCI6MjA5OTk1MzU1MX0.Naocw-B0B6Z7CLg197yxLezd58a6f5XoMLEiea5b0Ro'
 const CLIENT = 'hubsandbabydoll'
+const OPTIN_FN = `${SUPA_URL}/functions/v1/hb-optin`
+
+// A2P-required disclosure — exact wording stored in DB for carrier audit trail
+const SMS_DISCLOSURE =
+  'By providing your phone number and checking this box, you agree to receive recurring ' +
+  'automated marketing text messages from Hubs & Babydoll at the number provided. ' +
+  'Msg & data rates may apply. Consent is not a condition of purchase. ' +
+  'Text STOP to cancel, HELP for help. Message frequency varies.'
 
 // Payment handles — fill these in to turn on one-tap payment at checkout.
 // (Leave blank and customers are told you'll send a payment request.)
@@ -36,6 +44,8 @@ export default function CheckoutPage() {
   })
   const [isGift, setIsGift] = useState(false)
   const [giftMessage, setGiftMessage] = useState('')
+  const [emailOptIn, setEmailOptIn] = useState(false)
+  const [smsOptIn, setSmsOptIn] = useState(false)
 
   // Reward / referral code
   const [code, setCode] = useState('')
@@ -142,6 +152,22 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'redeem', code: appliedCode }),
+      }).catch(() => {})
+    }
+
+    // Record marketing opt-in consent (fire-and-forget — never blocks the order)
+    if (emailOptIn || smsOptIn) {
+      fetch(OPTIN_FN, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email.trim() || null,
+          phone: smsOptIn ? form.phone.trim() : null,
+          email_opt_in: emailOptIn && !!form.email.trim(),
+          sms_opt_in: smsOptIn && !!form.phone.trim(),
+          sms_consent_disclosure: smsOptIn && form.phone.trim() ? SMS_DISCLOSURE : null,
+          source: 'checkout_form',
+        }),
       }).catch(() => {})
     }
 
@@ -361,6 +387,38 @@ export default function CheckoutPage() {
                 )}
               </div>
             </fieldset>
+
+            {/* Marketing opt-in — both unchecked by default, consent not required for purchase */}
+            <div className="border border-border rounded-sm p-4 flex flex-col gap-3">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Stay updated (optional)</p>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={emailOptIn}
+                  onChange={(e) => setEmailOptIn(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[var(--color-primary)] shrink-0"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  Email me about new products, restocks, and offers from Hubs &amp; Babydoll. I can
+                  unsubscribe anytime.
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={smsOptIn}
+                  onChange={(e) => setSmsOptIn(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[var(--color-primary)] shrink-0"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  Text me drop alerts and restocks from Hubs &amp; Babydoll. By checking this box, I
+                  agree to receive recurring automated marketing texts at the phone number I provided.
+                  Msg &amp; data rates may apply. Consent is not a condition of purchase. Text{' '}
+                  <strong>STOP</strong> to cancel, <strong>HELP</strong> for help. Message frequency
+                  varies.
+                </span>
+              </label>
+            </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
