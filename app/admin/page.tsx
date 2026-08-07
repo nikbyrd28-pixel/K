@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   Loader2, Plus, Trash2, Eye, EyeOff, Check, LogOut, ImagePlus,
   RefreshCw, Package, Truck, CheckCircle2, BarChart3, AlertTriangle,
+  Users, Star, ShoppingBag, Mail,
 } from 'lucide-react'
 import { mergeCatalog, type EffectiveItem, type ProductRow, type CatalogSize } from '@/lib/catalog'
 
@@ -34,7 +35,7 @@ export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
   const [user, setUser] = useState<DashUser | null>(null)
-  const [tab, setTab] = useState<'orders' | 'products' | 'rewards' | 'stats' | 'team'>('orders')
+  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -134,6 +135,7 @@ export default function AdminPage() {
 
   const tabs: { key: typeof tab; label: string }[] = [
     { key: 'orders', label: 'Orders' },
+    { key: 'customers', label: 'Customers' },
     { key: 'products', label: 'Products' },
     { key: 'rewards', label: 'Rewards' },
     { key: 'stats', label: 'Stats' },
@@ -175,6 +177,7 @@ export default function AdminPage() {
       </div>
 
       {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
+      {tab === 'customers' && <CustomersTab call={call} />}
       {tab === 'products' && <ProductsTab call={call} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
       {tab === 'stats' && <StatsTab call={call} />}
@@ -286,6 +289,185 @@ function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => 
         className="self-start inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary"
       >
         <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+//  CUSTOMERS — CRM pipeline
+// ---------------------------------------------------------------------------
+type Customer = {
+  name: string
+  email: string
+  phone: string
+  orderCount: number
+  lastOrder: string
+  firstOrder: string
+}
+type Lead = { name: string; email: string; subscribedAt: string }
+
+function customerStage(c: Customer): 'new' | 'loyal' | 'vip' {
+  if (c.orderCount >= 5) return 'vip'
+  if (c.orderCount >= 2) return 'loyal'
+  return 'new'
+}
+
+const STAGE_LABELS = { new: 'New customer', loyal: 'Regular', vip: 'VIP' }
+const STAGE_COLORS = {
+  new: 'bg-blue-500/15 text-blue-400',
+  loyal: 'bg-primary/15 text-primary',
+  vip: 'bg-amber-500/15 text-amber-400',
+}
+
+function CustomersTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [customers, setCustomers] = useState<Customer[] | null>(null)
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [filter, setFilter] = useState<'all' | 'new' | 'loyal' | 'vip' | 'leads'>('all')
+  const [err, setErr] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setErr(null)
+    try {
+      const data = await call('customers')
+      setCustomers(data.customers || [])
+      setLeads(data.leads || [])
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not load customers.')
+    } finally {
+      setLoading(false)
+    }
+  }, [call])
+
+  useEffect(() => { load() }, [load])
+
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+  if (err) return <p className="text-sm text-destructive">{err}</p>
+
+  const vips = customers!.filter((c) => customerStage(c) === 'vip')
+  const loyal = customers!.filter((c) => customerStage(c) === 'loyal')
+  const newC = customers!.filter((c) => customerStage(c) === 'new')
+
+  const summaryCards = [
+    { icon: <Users className="w-4 h-4" />, value: customers!.length, label: 'Customers' },
+    { icon: <Star className="w-4 h-4" />, value: vips.length, label: 'VIPs (5+ orders)' },
+    { icon: <ShoppingBag className="w-4 h-4" />, value: loyal.length, label: 'Regulars (2–4)' },
+    { icon: <Mail className="w-4 h-4" />, value: leads.length, label: 'Email-only leads' },
+  ]
+
+  const filterTabs: { key: typeof filter; label: string; count: number }[] = [
+    { key: 'all', label: 'All customers', count: customers!.length },
+    { key: 'vip', label: 'VIPs', count: vips.length },
+    { key: 'loyal', label: 'Regulars', count: loyal.length },
+    { key: 'new', label: 'New', count: newC.length },
+    { key: 'leads', label: 'Email leads', count: leads.length },
+  ]
+
+  const visible = filter === 'leads' ? [] : customers!.filter((c) => filter === 'all' || customerStage(c) === filter)
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Summary row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {summaryCards.map((c) => (
+          <div key={c.label} className="border border-border rounded-sm bg-card p-4 flex items-center gap-3">
+            <span className="text-primary">{c.icon}</span>
+            <div>
+              <p className="text-2xl font-serif leading-none">{c.value}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{c.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pipeline stage tip */}
+      <div className="flex items-start gap-3 border border-border/50 rounded-sm bg-card/50 px-4 py-3">
+        <Star className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+        <p className="text-xs text-muted-foreground">
+          <strong className="text-foreground">Pipeline stages</strong> are automatic — 1 order = New, 2–4 orders = Regular, 5+ = VIP.
+          Email leads signed up but haven&apos;t ordered yet — perfect to convert with a welcome code.
+        </p>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
+        {filterTabs.map(({ key, label, count }) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className={[
+              'px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] -mb-px border-b-2 whitespace-nowrap transition-colors',
+              filter === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+            ].join(' ')}
+          >
+            {label} <span className="opacity-60">({count})</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Customer list */}
+      {filter !== 'leads' && (
+        <div className="flex flex-col gap-2">
+          {visible.length === 0 && (
+            <p className="text-sm text-muted-foreground py-8 text-center">No customers in this stage yet.</p>
+          )}
+          {visible.map((c) => {
+            const stage = customerStage(c)
+            return (
+              <div key={c.email} className="border border-border rounded-sm bg-card px-4 py-3 flex items-center gap-4 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-serif text-base">{c.name || 'Customer'}</span>
+                    <span className={`text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${STAGE_COLORS[stage]}`}>
+                      {STAGE_LABELS[stage]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {c.email}{c.phone ? ` · ${c.phone}` : ''}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm text-primary font-medium">
+                    {c.orderCount} order{c.orderCount === 1 ? '' : 's'}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Last: {new Date(c.lastOrder).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Email leads */}
+      {filter === 'leads' && (
+        <div className="flex flex-col gap-2">
+          {leads.length === 0 && (
+            <p className="text-sm text-muted-foreground py-8 text-center">No email-only leads yet.</p>
+          )}
+          <p className="text-xs text-muted-foreground -mt-2 mb-1">
+            These people signed up for your email list but haven&apos;t placed an order — send them a welcome discount to convert them.
+          </p>
+          {leads.map((l) => (
+            <div key={l.email} className="border border-border rounded-sm bg-card px-4 py-3 flex items-center gap-4 flex-wrap">
+              <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm">{l.name || l.email}</p>
+                {l.name && <p className="text-xs text-muted-foreground truncate">{l.email}</p>}
+              </div>
+              <p className="text-[11px] text-muted-foreground shrink-0">
+                Joined {new Date(l.subscribedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button onClick={load} className="self-start inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary">
+        <RefreshCw className="w-3.5 h-3.5" /> Refresh
       </button>
     </div>
   )
