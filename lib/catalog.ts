@@ -33,6 +33,7 @@ export type CatalogSize = {
   price: number
   soldOut?: boolean
   badge?: string
+  stock?: number
 }
 
 export type CatalogItem = {

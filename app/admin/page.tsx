@@ -3,7 +3,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Loader2, Plus, Trash2, Eye, EyeOff, Check, LogOut, ImagePlus, RefreshCw } from 'lucide-react'
+import {
+  Loader2, Plus, Trash2, Eye, EyeOff, Check, LogOut, ImagePlus,
+  RefreshCw, Package, Truck, CheckCircle2, BarChart3, AlertTriangle,
+} from 'lucide-react'
 import { mergeCatalog, type EffectiveItem, type ProductRow, type CatalogSize } from '@/lib/catalog'
 
 const SUPA_URL = 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co'
@@ -21,6 +24,8 @@ type Order = {
   service?: string
   pickup?: string
   message?: string
+  status?: string
+  tracking_number?: string
 }
 
 type DashUser = { name: string; role: string }
@@ -29,7 +34,7 @@ export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
   const [user, setUser] = useState<DashUser | null>(null)
-  const [tab, setTab] = useState<'orders' | 'products' | 'rewards' | 'team'>('orders')
+  const [tab, setTab] = useState<'orders' | 'products' | 'rewards' | 'stats' | 'team'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -73,7 +78,6 @@ export default function AdminPage() {
     setErr(null)
     setBusy(true)
     try {
-      // A lightweight, real password check — asking for orders proves the password.
       const data = await call('orders')
       rememberUser(data.user || null)
       localStorage.setItem('hb_pw', pw)
@@ -128,6 +132,14 @@ export default function AdminPage() {
     )
   }
 
+  const tabs: { key: typeof tab; label: string }[] = [
+    { key: 'orders', label: 'Orders' },
+    { key: 'products', label: 'Products' },
+    { key: 'rewards', label: 'Rewards' },
+    { key: 'stats', label: 'Stats' },
+    ...(user?.role === 'owner' ? [{ key: 'team' as const, label: 'Team' }] : []),
+  ]
+
   return (
     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
@@ -147,17 +159,17 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-8 border-b border-border">
-        {(['orders', 'products', 'rewards', ...(user?.role === 'owner' ? ['team'] : [])] as const).map((t) => (
+      <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto">
+        {tabs.map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={key}
+            onClick={() => setTab(key)}
             className={[
-              'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors capitalize',
-              tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+              'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors whitespace-nowrap',
+              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
             ].join(' ')}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
@@ -165,15 +177,124 @@ export default function AdminPage() {
       {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
       {tab === 'products' && <ProductsTab call={call} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
+      {tab === 'stats' && <StatsTab call={call} />}
       {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
     </section>
   )
 }
 
 // ---------------------------------------------------------------------------
+//  STATS
+// ---------------------------------------------------------------------------
+type Stats = {
+  totalOrders: number
+  weekOrders: number
+  todayOrders: number
+  subscribers: number
+  pendingOrders: number
+  shippedOrders: number
+  recentOrders: { id: number; created_at: string; name: string; service: string; status: string }[]
+}
+
+function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setErr(null)
+    try {
+      const data = await call('stats')
+      setStats(data)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not load stats.')
+    } finally {
+      setLoading(false)
+    }
+  }, [call])
+
+  useEffect(() => { load() }, [load])
+
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+  if (err) return <p className="text-sm text-destructive">{err}</p>
+
+  const cards = [
+    { label: 'Total orders', value: stats!.totalOrders, sub: 'all time' },
+    { label: 'This week', value: stats!.weekOrders, sub: 'last 7 days' },
+    { label: 'Today', value: stats!.todayOrders, sub: new Date().toLocaleDateString('en-US', { weekday: 'long' }) },
+    { label: 'Email list', value: stats!.subscribers, sub: 'subscribers' },
+  ]
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((c) => (
+          <div key={c.label} className="border border-border rounded-sm bg-card p-5">
+            <p className="text-3xl font-serif text-primary">{c.value}</p>
+            <p className="text-xs uppercase tracking-[0.15em] mt-1">{c.label}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{c.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Fulfillment status */}
+      <div className="border border-border rounded-sm bg-card p-5">
+        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Fulfillment status</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-3">
+            <Package className="w-5 h-5 text-amber-500" />
+            <div>
+              <p className="text-2xl font-serif">{stats!.pendingOrders}</p>
+              <p className="text-xs text-muted-foreground">Awaiting shipment</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Truck className="w-5 h-5 text-primary" />
+            <div>
+              <p className="text-2xl font-serif">{stats!.shippedOrders}</p>
+              <p className="text-xs text-muted-foreground">Shipped</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent orders */}
+      {stats!.recentOrders.length > 0 && (
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">Recent orders</p>
+          <div className="flex flex-col gap-2">
+            {stats!.recentOrders.map((o) => (
+              <div key={o.id} className="flex items-center gap-4 border border-border rounded-sm px-4 py-3 bg-card">
+                <StatusBadge status={o.status} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{o.name || 'Customer'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{o.service}</p>
+                </div>
+                <p className="text-xs text-muted-foreground shrink-0">
+                  {new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={load}
+        className="self-start inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary"
+      >
+        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 //  ORDERS
 // ---------------------------------------------------------------------------
-function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; onUser?: (u: { name: string; role: string } | null) => void }) {
+function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; onUser?: (u: DashUser | null) => void }) {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [subscribers, setSubscribers] = useState<Order[]>([])
   const [err, setErr] = useState<string | null>(null)
@@ -194,9 +315,17 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
     }
   }, [call])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
+
+  const updateOrder = (id: string | number | undefined, patch: Partial<Order>) => {
+    setOrders((prev) => prev!.map((o) => (o.id === id ? { ...o, ...patch } : o)))
+  }
+
+  const saveShipping = async (o: Order) => {
+    try {
+      await call('order_update', { id: o.id, status: o.status || '', tracking_number: o.tracking_number || '' })
+    } catch {}
+  }
 
   return (
     <div>
@@ -227,7 +356,7 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
       )}
       {orders && orders.length === 0 && (
         <div className="border border-border rounded-sm p-10 text-center text-muted-foreground">
-          No orders yet — they’ll appear here the moment someone checks out.
+          No orders yet — they'll appear here the moment someone checks out.
         </div>
       )}
       <div className="flex flex-col gap-4">
@@ -235,8 +364,11 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
           <div key={o.id ?? i} className="border border-border rounded-sm p-5 bg-card">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <p className="font-serif text-xl">{o.name || 'Customer'}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-serif text-xl">{o.name || 'Customer'}</p>
+                  <StatusBadge status={o.status} />
+                </div>
+                <p className="text-xs text-muted-foreground">
                   {[o.phone, o.email].filter(Boolean).join(' · ')}
                 </p>
               </div>
@@ -254,10 +386,71 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
                 {o.message}
               </pre>
             )}
+            {/* Shipping controls */}
+            <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Status</label>
+                <select
+                  value={o.status || ''}
+                  onChange={(e) => updateOrder(o.id, { status: e.target.value })}
+                  className="bg-input border border-border rounded-none px-3 h-9 text-sm focus:outline-none focus:border-primary"
+                >
+                  <option value="">Pending</option>
+                  <option value="packed">Packed</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="pickup_ready">Ready for pickup</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
+                <label className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Tracking number</label>
+                <input
+                  value={o.tracking_number || ''}
+                  onChange={(e) => updateOrder(o.id, { tracking_number: e.target.value })}
+                  placeholder="e.g. 9400111899223851234567"
+                  className="bg-input border border-border rounded-none px-3 h-9 text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+              <button
+                onClick={() => saveShipping(o)}
+                className="inline-flex items-center gap-1.5 rounded-none bg-primary/15 text-primary hover:bg-primary/25 text-[11px] uppercase tracking-[0.15em] h-9 px-4"
+              >
+                <Check className="w-3.5 h-3.5" /> Save
+              </button>
+            </div>
           </div>
         ))}
       </div>
     </div>
+  )
+}
+
+function StatusBadge({ status }: { status?: string }) {
+  const s = status || ''
+  if (s === 'shipped') return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+      <Truck className="w-3 h-3" /> Shipped
+    </span>
+  )
+  if (s === 'delivered') return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded-full">
+      <CheckCircle2 className="w-3 h-3" /> Delivered
+    </span>
+  )
+  if (s === 'packed') return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] bg-amber-500/15 text-amber-500 px-2 py-0.5 rounded-full">
+      <Package className="w-3 h-3" /> Packed
+    </span>
+  )
+  if (s === 'pickup_ready') return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] bg-blue-500/15 text-blue-500 px-2 py-0.5 rounded-full">
+      <Package className="w-3 h-3" /> Ready
+    </span>
+  )
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+      Pending
+    </span>
   )
 }
 
@@ -268,7 +461,6 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
   const [items, setItems] = useState<EditItem[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
-
   const [editedBy, setEditedBy] = useState<Record<string, string>>({})
 
   const load = useCallback(async () => {
@@ -288,14 +480,9 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
     }
   }, [])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
-  const flash = (m: string) => {
-    setOkMsg(m)
-    setTimeout(() => setOkMsg(null), 2500)
-  }
+  const flash = (m: string) => { setOkMsg(m); setTimeout(() => setOkMsg(null), 2500) }
 
   const update = (idx: number, patch: Partial<EditItem>) =>
     setItems((prev) => prev!.map((it, i) => (i === idx ? { ...it, ...patch } : it)))
@@ -340,19 +527,10 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
 
   const toggleHide = async (idx: number) => {
     update(idx, { active: !items![idx].active })
-    // Persist immediately so it reflects on the site.
     const it = { ...items![idx], active: !items![idx].active }
     try {
       await call('save', {
-        product: {
-          handle: it.handle || it.name,
-          name: it.name,
-          description: it.description,
-          image: it.image,
-          sizes: it.sizes,
-          sort: it.sort,
-          active: it.active,
-        },
+        product: { handle: it.handle || it.name, name: it.name, description: it.description, image: it.image, sizes: it.sizes, sort: it.sort, active: it.active },
       })
       flash(it.active ? 'Now showing on the site' : 'Hidden from the site')
     } catch (e) {
@@ -375,17 +553,7 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
 
   const addProduct = () =>
     setItems((prev) => [
-      {
-        handle: '',
-        name: '',
-        description: '',
-        image: '',
-        imageAlt: '',
-        sizes: [{ size: 'One size', price: 0 }],
-        active: true,
-        sort: (prev?.length ?? 0) + 100,
-        _new: true,
-      },
+      { handle: '', name: '', description: '', image: '', imageAlt: '', sizes: [{ size: 'One size', price: 0 }], active: true, sort: (prev?.length ?? 0) + 100, _new: true },
       ...(prev ?? []),
     ])
 
@@ -397,11 +565,8 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
       const it = items![idx]
       const data = await call('upload', { handle: it.handle || it.name || 'photo', dataUrl })
       update(idx, { image: data.url, _saving: false })
-      // Auto-save the new photo if the product already exists (has a name).
       if (it.name.trim() && !it._new) {
-        await call('save', {
-          product: { handle: it.handle, name: it.name, description: it.description, image: data.url, sizes: it.sizes, sort: it.sort, active: it.active },
-        })
+        await call('save', { product: { handle: it.handle, name: it.name, description: it.description, image: data.url, sizes: it.sizes, sort: it.sort, active: it.active } })
         flash('Photo updated ✓')
       } else {
         flash('Photo ready — click Save')
@@ -412,17 +577,29 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
     }
   }
 
+  // Low-stock items
+  const lowStockCount = items?.reduce((n, it) => {
+    return n + it.sizes.filter((s) => s.stock !== undefined && s.stock < 5 && !s.soldOut).length
+  }, 0) ?? 0
+
   if (!items) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <button
-          onClick={addProduct}
-          className="inline-flex items-center gap-2 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-11 px-5"
-        >
-          <Plus className="w-4 h-4" /> Add product
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={addProduct}
+            className="inline-flex items-center gap-2 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-11 px-5"
+          >
+            <Plus className="w-4 h-4" /> Add product
+          </button>
+          {lowStockCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-amber-500 border border-amber-500/30 px-3 h-11 bg-amber-500/5">
+              <AlertTriangle className="w-3.5 h-3.5" /> {lowStockCount} size{lowStockCount === 1 ? '' : 's'} low on stock
+            </span>
+          )}
+        </div>
         {okMsg && <span className="text-sm text-primary">{okMsg}</span>}
       </div>
       {err && <p className="text-sm text-destructive mb-4">{err}</p>}
@@ -472,40 +649,64 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
                   className="bg-input border border-border rounded-none px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary resize-y"
                 />
 
-                {/* Sizes + prices */}
+                {/* Sizes + prices + stock */}
                 <div className="flex flex-col gap-2">
-                  {it.sizes.map((s, sIdx) => (
-                    <div key={sIdx} className="flex items-center gap-2">
-                      <input
-                        value={s.size}
-                        onChange={(e) => updateSize(idx, sIdx, { size: e.target.value })}
-                        placeholder="Size"
-                        className="bg-input border border-border rounded-none px-3 h-10 text-sm w-32 focus:outline-none focus:border-primary"
-                      />
-                      <span className="text-muted-foreground">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={s.price}
-                        onChange={(e) => updateSize(idx, sIdx, { price: parseFloat(e.target.value) || 0 })}
-                        className="bg-input border border-border rounded-none px-3 h-10 text-sm w-24 focus:outline-none focus:border-primary"
-                      />
-                      <label className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground ml-1">
+                  <div className="hidden sm:grid grid-cols-[1fr_80px_80px_90px_auto] gap-2 text-[10px] uppercase tracking-[0.1em] text-muted-foreground px-1">
+                    <span>Size</span><span>Price</span><span>Stock</span><span></span><span></span>
+                  </div>
+                  {it.sizes.map((s, sIdx) => {
+                    const lowStock = s.stock !== undefined && s.stock < 5 && !s.soldOut
+                    return (
+                      <div key={sIdx} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_90px_auto] gap-2 items-center">
                         <input
-                          type="checkbox"
-                          checked={!!s.soldOut}
-                          onChange={(e) => updateSize(idx, sIdx, { soldOut: e.target.checked })}
+                          value={s.size}
+                          onChange={(e) => updateSize(idx, sIdx, { size: e.target.value })}
+                          placeholder="Size / name"
+                          className="bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary"
                         />
-                        Sold out
-                      </label>
-                      {it.sizes.length > 1 && (
-                        <button onClick={() => removeSize(idx, sIdx)} className="text-muted-foreground hover:text-destructive ml-auto" aria-label="Remove size">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground text-sm">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={s.price}
+                            onChange={(e) => updateSize(idx, sIdx, { price: parseFloat(e.target.value) || 0 })}
+                            className="bg-input border border-border rounded-none px-2 h-10 text-sm w-full focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            value={s.stock ?? ''}
+                            onChange={(e) => updateSize(idx, sIdx, { stock: e.target.value === '' ? undefined : parseInt(e.target.value) || 0 })}
+                            placeholder="—"
+                            title="Units in stock"
+                            className={`bg-input border rounded-none px-2 h-10 text-sm w-full focus:outline-none focus:border-primary ${lowStock ? 'border-amber-500/60' : 'border-border'}`}
+                          />
+                          {lowStock && (
+                            <AlertTriangle className="w-3 h-3 text-amber-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          )}
+                        </div>
+                        <label className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={!!s.soldOut}
+                            onChange={(e) => updateSize(idx, sIdx, { soldOut: e.target.checked })}
+                          />
+                          Sold out
+                        </label>
+                        {it.sizes.length > 1 ? (
+                          <button onClick={() => removeSize(idx, sIdx)} className="text-muted-foreground hover:text-destructive" aria-label="Remove size">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <span />
+                        )}
+                      </div>
+                    )
+                  })}
                   <button onClick={() => addSize(idx)} className="self-start text-[11px] uppercase tracking-[0.12em] text-primary hover:underline mt-1">
                     + Add a size
                   </button>
@@ -577,14 +778,9 @@ function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) =
     }
   }, [call])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
-  const flash = (m: string) => {
-    setOkMsg(m)
-    setTimeout(() => setOkMsg(null), 2500)
-  }
+  const flash = (m: string) => { setOkMsg(m); setTimeout(() => setOkMsg(null), 2500) }
 
   const create = async () => {
     if (!draft.code.trim()) return setErr('Enter a code (letters and numbers).')
@@ -611,9 +807,7 @@ function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) =
 
   const toggle = async (c: Code) => {
     try {
-      await call('discount_save', {
-        discount: { code: c.code, kind: c.kind, value: c.value, max_uses: c.max_uses, min_subtotal: c.min_subtotal, note: c.note, active: !c.active },
-      })
+      await call('discount_save', { discount: { code: c.code, kind: c.kind, value: c.value, max_uses: c.max_uses, min_subtotal: c.min_subtotal, note: c.note, active: !c.active } })
       load()
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not update.')
@@ -637,7 +831,6 @@ function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) =
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Create */}
       <div className="border border-border rounded-sm p-5 bg-card">
         <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Create a reward code</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -694,7 +887,6 @@ function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) =
         </div>
       </div>
 
-      {/* Regular codes */}
       <div>
         <p className="text-sm text-muted-foreground mb-3">{regular.length} reward code{regular.length === 1 ? '' : 's'}</p>
         <div className="flex flex-col gap-2">
@@ -704,7 +896,6 @@ function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) =
         </div>
       </div>
 
-      {/* Referrals */}
       {referrals.length > 0 && (
         <div>
           <p className="text-sm text-muted-foreground mb-1">{referrals.length} customer referral code{referrals.length === 1 ? '' : 's'}</p>
