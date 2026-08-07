@@ -42,6 +42,9 @@ export interface ProductLike {
   description: string
   price: string
   variantId?: string
+  /** Live sizes from the DB, populated by use-products. When present these take
+   *  priority over the static MERCHANDISING map so admin price changes are live. */
+  liveSizes?: Array<{ size: string; price: number; soldOut?: boolean; badge?: string }>
   variants?: Array<{
     id: string
     title: string
@@ -76,28 +79,35 @@ export function getMerch(product: ProductLike) {
     (variant) => variant.title && variant.title !== 'Default Title',
   )
 
-  // Always prefer curated sizes if they exist, regardless of Shopify variant titles.
-  // Only fall back to Shopify variants if there's no merchandising entry AND
-  // Shopify has real variant options (not just "Default Title").
-  const sizes: Size[] = merch?.sizes
-    ? merch.sizes.map((size) => {
-        const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
-
-        return {
-          ...size,
-          price: variant ? Number.parseFloat(variant.price) || size.price : size.price,
-          soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
-          variantId: variant?.id ?? product.variantId,
-        }
-      })
-    : liveVariants.length > 0 && hasRealVariantOptions
-      ? liveVariants.map((variant) => ({
-          label: variant.title === 'Default Title' ? 'Available size' : variant.title,
-          price: Number.parseFloat(variant.price) || 0,
-          soldOut: !variant.availableForSale,
-          variantId: variant.id,
-        }))
-      : [{ label: 'One size', price: parseFloat(product.price) || 0, variantId: product.variantId }]
+  // Live sizes from the DB (via use-products) are the highest-priority source —
+  // they reflect whatever the owner saved in the admin panel. Fall back to the
+  // static MERCHANDISING map, then Shopify variants, then a single "One size".
+  const sizes: Size[] = product.liveSizes?.length
+    ? product.liveSizes.map((s, i) => ({
+        label: s.size,
+        price: s.price,
+        soldOut: s.soldOut ?? false,
+        badge: s.badge,
+        variantId: `${product.variantId ?? product.handle}-${i}`,
+      }))
+    : merch?.sizes
+      ? merch.sizes.map((size) => {
+          const variant = liveVariants.find((candidate) => variantMatchesSize(candidate, size.label))
+          return {
+            ...size,
+            price: variant ? Number.parseFloat(variant.price) || size.price : size.price,
+            soldOut: size.soldOut || (variant ? !variant.availableForSale : !product.variantId),
+            variantId: variant?.id ?? product.variantId,
+          }
+        })
+      : liveVariants.length > 0 && hasRealVariantOptions
+        ? liveVariants.map((variant) => ({
+            label: variant.title === 'Default Title' ? 'Available size' : variant.title,
+            price: Number.parseFloat(variant.price) || 0,
+            soldOut: !variant.availableForSale,
+            variantId: variant.id,
+          }))
+        : [{ label: 'One size', price: parseFloat(product.price) || 0, variantId: product.variantId }]
 
   const availableSizes = sizes.filter((s) => !s.soldOut)
 
