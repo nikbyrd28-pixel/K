@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/faq', priority: 0.5, changeFrequency: 'monthly' },
     { path: '/shipping-policy', priority: 0.3, changeFrequency: 'yearly' },
     { path: '/refund-policy', priority: 0.3, changeFrequency: 'yearly' },
+    { path: '/privacy-policy', priority: 0.3, changeFrequency: 'yearly' },
   ]
 
   // Every product page, so Google can index the full catalog.

@@ -18,7 +18,7 @@ const sections = [
   {
     heading: 'Shipping Rates & Delivery',
     body: [
-      'Shipping is calculated at checkout based on your location and the weight of your order. Once your order ships, domestic delivery typically takes 3–7 business days.',
+      'Shipping costs are based on your location and the weight of your order. We will confirm the shipping cost with you before finalizing your order. Once your order ships, domestic delivery typically takes 3–7 business days.',
       'You will receive a confirmation email with tracking information as soon as your order is on its way.',
     ],
   },
