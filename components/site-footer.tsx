@@ -43,6 +43,7 @@ export function SiteFooter() {
               { href: '/faq', label: 'FAQ' },
               { href: '/shipping-policy', label: 'Shipping' },
               { href: '/refund-policy', label: 'Refunds' },
+              { href: '/privacy-policy', label: 'Privacy' },
             ].map((link) => (
               <Link
                 key={link.href}
