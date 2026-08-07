@@ -1,5 +1,5 @@
 import useSWR from 'swr'
-import { mergeCatalog, type ProductRow } from '@/lib/catalog'
+import { mergeCatalog, type ProductRow, type CatalogSize } from '@/lib/catalog'
 
 export interface Product {
   id: string
@@ -11,6 +11,9 @@ export interface Product {
   price: string
   variantId: string
   variants: ProductVariant[]
+  /** Live sizes from the DB (via mergeCatalog). getMerch reads these so price
+   *  changes in the admin panel are immediately reflected on the storefront. */
+  liveSizes: CatalogSize[]
 }
 
 export interface ProductVariant {
@@ -56,6 +59,7 @@ export function useProducts() {
       price: item.sizes[0]?.price?.toFixed(2) ?? '0',
       variantId: `hb-${item.handle}-v`,
       variants: [],
+      liveSizes: item.sizes,
     }))
 
   return { products, isLoading: false, error: null as Error | null }
