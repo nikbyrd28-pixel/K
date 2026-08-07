@@ -56,7 +56,7 @@ export const CATALOG: CatalogItem[] = [
       'For the man who carries a lot and rarely asks for anything in return. A curated Bay Rum grooming set — body oil, body butter, body bar, and soft-touch cloths — that says, "I see you. You deserve care, too."',
     image: '/products/pro-heard-bay-rum-set.jpg',
     imageAlt: 'HEARD Bay Rum gift box set by Hubs & Babydoll',
-    sizes: [{ size: 'Gift box', price: 50 }],
+    sizes: [{ size: 'Gift box', price: 85 }],
   },
   {
     handle: 'seen-lavender-box',
@@ -85,10 +85,7 @@ export const CATALOG: CatalogItem[] = [
       'A lightweight blend of jojoba, sweet almond, flaxseed, and castor oils with Vitamin E and warm notes of Bay Rum. Nourishes skin and conditions beards without a greasy finish.',
     image: '/products/oil-bay-rum.png',
     imageAlt: 'Harmony Bay Rum Body Oil by Hubs & Babydoll',
-    sizes: [
-      { size: '2 oz', price: 15 },
-      { size: '4 oz', price: 25 },
-    ],
+    sizes: [{ size: '3.5 oz', price: 10 }],
   },
   {
     handle: 'harmony-jasmine-gardenia-body-oil',
@@ -97,10 +94,7 @@ export const CATALOG: CatalogItem[] = [
       'The timeless elegance of Jasmine & Gardenia in a blend of jojoba, sweet almond, flaxseed, and castor oils with Vitamin E. Melts in to nourish, soften, and reveal a luminous glow.',
     image: '/products/oil-jasmine-gardenia.jpg',
     imageAlt: 'Harmony Jasmine & Gardenia Body Oil by Hubs & Babydoll',
-    sizes: [
-      { size: '2 oz', price: 15, badge: 'Most Popular' },
-      { size: '4 oz', price: 25 },
-    ],
+    sizes: [{ size: '3.5 oz', price: 10, badge: 'Most Popular' }],
   },
   {
     handle: 'harmony-chocolate-body-oil',
@@ -109,10 +103,7 @@ export const CATALOG: CatalogItem[] = [
       'A warm, comforting cocoa-kissed body oil in a blend of jojoba, sweet almond, flaxseed, and castor oils with Vitamin E. Sinks in fast for soft, glowing skin.',
     image: '/products/oil-chocolate.jpg',
     imageAlt: 'Harmony Chocolate Body Oil by Hubs & Babydoll',
-    sizes: [
-      { size: '2 oz', price: 15 }, // GUESS
-      { size: '4 oz', price: 25 }, // GUESS
-    ],
+    sizes: [{ size: '3.5 oz', price: 10 }],
   },
 
   // ---- BODY BUTTERS -------------------------------------------------------
@@ -124,8 +115,8 @@ export const CATALOG: CatalogItem[] = [
     image: '/products/butter-jasmine-gardenia.jpg',
     imageAlt: 'Jasmine & Gardenia Body Butter by Hubs & Babydoll',
     sizes: [
-      { size: '4 oz', price: 20 }, // GUESS
-      { size: '8 oz', price: 35 }, // GUESS
+      { size: '2 oz', price: 20 },
+      { size: '4 oz', price: 35 },
     ],
   },
   {
@@ -136,8 +127,8 @@ export const CATALOG: CatalogItem[] = [
     image: '/products/butter-lavender-rose.jpg',
     imageAlt: 'Lavender Rose Body Butter by Hubs & Babydoll',
     sizes: [
-      { size: '4 oz', price: 20 }, // GUESS
-      { size: '8 oz', price: 35 }, // GUESS
+      { size: '2 oz', price: 20 },
+      { size: '4 oz', price: 35 },
     ],
   },
   {
@@ -148,8 +139,8 @@ export const CATALOG: CatalogItem[] = [
     image: '/products/butter-chocolate.jpg',
     imageAlt: 'Chocolate Body Butter by Hubs & Babydoll',
     sizes: [
-      { size: '4 oz', price: 20 }, // GUESS
-      { size: '8 oz', price: 35 }, // GUESS
+      { size: '2 oz', price: 20 },
+      { size: '4 oz', price: 35 },
     ],
   },
   {
@@ -160,8 +151,8 @@ export const CATALOG: CatalogItem[] = [
     image: '/products/butter-peppermint.jpg',
     imageAlt: 'Peppermint Body Butter by Hubs & Babydoll',
     sizes: [
-      { size: '4 oz', price: 20 }, // GUESS
-      { size: '8 oz', price: 35 }, // GUESS
+      { size: '2 oz', price: 20 },
+      { size: '4 oz', price: 35 },
     ],
   },
 
@@ -188,7 +179,7 @@ export const CATALOG: CatalogItem[] = [
   // ---- BEARD CARE ---------------------------------------------------------
   {
     handle: 'heard-bay-rum-beard-set',
-    name: 'HEARD Bay Rum Beard Set',
+    name: 'HEARD Bay Rum Beard Box',
     description:
       'The complete Bay Rum beard grooming set — beard wash, beard oil, and beard balm — with Moroccan argan, jojoba, sweet almond, pumpkin seed, and castor oils, Vitamin E, and warm notes of Bay Rum.',
     image: '/products/pro-bay-rum-beard-set.jpg',
