@@ -94,7 +94,7 @@ export default function CheckoutPage() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  // Returning from Stripe hosted checkout (success_url = /checkout?paid=1).
+  // Returning from Square hosted checkout (success_url = /checkout?paid=1).
   useEffect(() => {
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('paid') === '1') {
       clearCart()
@@ -187,33 +187,6 @@ export default function CheckoutPage() {
         items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
       }),
     }).catch(() => {})
-  }
-
-  // Pay now with a card via Stripe hosted checkout.
-  const payByCard = async () => {
-    setError(null)
-    const v = validate()
-    if (v) return setError(v)
-    setSubmitting(true)
-    try {
-      await recordOrder('Card (pending)')
-      const res = await fetch(`${SUPA_URL}/functions/v1/hb-checkout`, {
-        method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          items: payItems(),
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start card checkout.')
-      window.location.href = data.url
-    } catch (e) {
-      setSubmitting(false)
-      setError(e instanceof Error ? e.message : 'Could not start card checkout.')
-    }
   }
 
   // Pay now with a card via Square hosted checkout.
@@ -436,14 +409,6 @@ export default function CheckoutPage() {
               </Button>
               <button
                 type="button"
-                onClick={payByCard}
-                disabled={submitting}
-                className="w-full rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors disabled:opacity-60"
-              >
-                <span className="inline-flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card (Stripe)</span>
-              </button>
-              <button
-                type="button"
                 onClick={placeOrder}
                 disabled={submitting}
                 className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
@@ -451,9 +416,9 @@ export default function CheckoutPage() {
                 Place order, pay another way
               </button>
             </div>
-            <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
+            <p className=”text-xs text-muted-foreground -mt-1 leading-relaxed”>
               Card payments are handled on a secure hosted page — your card never touches this site.
-              Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
+              Prefer Cash App, Venmo, or in person? Choose &ldquo;pay another way&rdquo; and we&apos;ll confirm.
             </p>
           </div>
 
