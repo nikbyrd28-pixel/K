@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Loader2, Plus, Trash2, Eye, EyeOff, Check, LogOut, ImagePlus,
   RefreshCw, Package, Truck, CheckCircle2, BarChart3, AlertTriangle,
-  Users, Star, ShoppingBag, Mail,
+  Users, Star, ShoppingBag, Mail, Camera, ExternalLink,
 } from 'lucide-react'
 import { mergeCatalog, type EffectiveItem, type ProductRow, type CatalogSize } from '@/lib/catalog'
 
@@ -153,12 +153,22 @@ export default function AdminPage() {
             </p>
           )}
         </div>
-        <button
-          onClick={signOut}
-          className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
-        >
-          <LogOut className="w-4 h-4" /> Sign out
-        </button>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://tbsol.net/crm/?client=hubsandbabydoll"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> TB CRM
+          </a>
+          <button
+            onClick={signOut}
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+          >
+            <LogOut className="w-4 h-4" /> Sign out
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto">
@@ -474,6 +484,101 @@ function CustomersTab({ call }: { call: (a: string, e?: Record<string, unknown>)
 }
 
 // ---------------------------------------------------------------------------
+//  BARCODE SCANNER HELPER
+// ---------------------------------------------------------------------------
+async function scanBarcode(file: File): Promise<string | null> {
+  if (!('BarcodeDetector' in window)) return null
+  try {
+    const bitmap = await createImageBitmap(file)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const detector = new (window as any).BarcodeDetector({ formats: ['code_128', 'code_39', 'code_93', 'qr_code'] })
+    const results: { rawValue: string }[] = await detector.detect(bitmap)
+    return results[0]?.rawValue ?? null
+  } catch {
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  SHIPPING BOX ESTIMATOR
+// ---------------------------------------------------------------------------
+const FLAT_RATES = [
+  { name: 'Small flat rate box', price: 10.40 },
+  { name: 'Medium flat rate box', price: 17.10 },
+  { name: 'Large flat rate box', price: 23.75 },
+]
+
+function estPriorityMail(lbs: number): number {
+  if (lbs <= 1) return 8.70
+  if (lbs <= 2) return 10.20
+  if (lbs <= 3) return 12.30
+  if (lbs <= 5) return 15.40
+  if (lbs <= 10) return 22.00
+  return 30.00
+}
+
+function ShippingEstimator() {
+  const [weight, setWeight] = useState('')
+  const w = parseFloat(weight)
+  const hasW = !isNaN(w) && w > 0
+  const pmEst = hasW ? estPriorityMail(w) : null
+
+  return (
+    <details className="border border-border rounded-sm bg-card">
+      <summary className="cursor-pointer px-5 py-4 flex items-center gap-2 select-none list-none">
+        <Package className="w-4 h-4 text-muted-foreground shrink-0" />
+        <span className="text-sm text-muted-foreground">Shipping box estimator</span>
+      </summary>
+      <div className="px-5 pb-5 border-t border-border pt-4">
+        <p className="text-xs text-muted-foreground mb-4">
+          USPS flat rate boxes vs. weight-based Priority Mail — enter your package weight to compare.
+        </p>
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            type="number"
+            min="0.1"
+            step="0.1"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="Weight in lbs"
+            className="w-36 bg-input border border-border rounded-none px-3 h-9 text-sm focus:outline-none focus:border-primary"
+          />
+          <span className="text-sm text-muted-foreground">lbs</span>
+        </div>
+        <div className="flex flex-col gap-2">
+          {pmEst !== null && (
+            <div className="flex items-center justify-between border border-border rounded-sm px-4 py-2.5 bg-muted/30">
+              <span className="text-sm">Priority Mail (~{w} lb, zone 1–2)</span>
+              <span className="text-sm font-medium">${pmEst.toFixed(2)}</span>
+            </div>
+          )}
+          {FLAT_RATES.map((b) => {
+            const isBetter = pmEst !== null && b.price <= pmEst
+            return (
+              <div
+                key={b.name}
+                className={`flex items-center justify-between rounded-sm px-4 py-2.5 border ${isBetter ? 'border-primary/40 bg-primary/5' : 'border-border'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{b.name}</span>
+                  {isBetter && (
+                    <span className="text-[10px] uppercase tracking-[0.1em] text-primary">Better deal</span>
+                  )}
+                </div>
+                <span className="text-sm font-medium">${b.price.toFixed(2)}</span>
+              </div>
+            )
+          })}
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-3">
+          Flat rate = same price up to 70 lbs regardless of distance. Weight estimate is approximate (zone 1–2); actual rates vary by destination.
+        </p>
+      </div>
+    </details>
+  )
+}
+
+// ---------------------------------------------------------------------------
 //  ORDERS
 // ---------------------------------------------------------------------------
 function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; onUser?: (u: DashUser | null) => void }) {
@@ -536,6 +641,8 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
       {loading && !orders && (
         <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       )}
+      <ShippingEstimator />
+      <div className="mt-2" />
       {orders && orders.length === 0 && (
         <div className="border border-border rounded-sm p-10 text-center text-muted-foreground">
           No orders yet — they'll appear here the moment someone checks out.
@@ -586,12 +693,37 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
                 <label className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Tracking number</label>
-                <input
-                  value={o.tracking_number || ''}
-                  onChange={(e) => updateOrder(o.id, { tracking_number: e.target.value })}
-                  placeholder="e.g. 9400111899223851234567"
-                  className="bg-input border border-border rounded-none px-3 h-9 text-sm focus:outline-none focus:border-primary"
-                />
+                <div className="flex gap-1">
+                  <input
+                    value={o.tracking_number || ''}
+                    onChange={(e) => updateOrder(o.id, { tracking_number: e.target.value })}
+                    placeholder="e.g. 9400111899223851234567"
+                    className="flex-1 bg-input border border-border rounded-none px-3 h-9 text-sm focus:outline-none focus:border-primary"
+                  />
+                  <label
+                    className="flex items-center justify-center w-9 h-9 border border-border bg-input hover:border-primary cursor-pointer shrink-0"
+                    title="Scan barcode from shipping label photo"
+                  >
+                    <Camera className="w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        const code = await scanBarcode(file)
+                        if (code) {
+                          updateOrder(o.id, { tracking_number: code })
+                        } else {
+                          alert('No barcode found — try again in better lighting, or type the number.')
+                        }
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
               <button
                 onClick={() => saveShipping(o)}
