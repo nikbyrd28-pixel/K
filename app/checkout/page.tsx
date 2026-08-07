@@ -431,7 +431,7 @@ export default function CheckoutPage() {
                 {submitting ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${total.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Checkout · ${total.toFixed(2)}</span>
                 )}
               </Button>
               <button
