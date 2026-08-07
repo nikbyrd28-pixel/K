@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
@@ -8,33 +8,29 @@ import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
 import { ReferFriend } from '@/components/refer-friend'
 
-// Orders are captured into TB Command (the shared Supabase backend) so they
-// appear in the owner's dashboard. This anon key is a public, insert-only key.
 const SUPA_URL = 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co'
 const SUPA_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYmppcWR3emdramttcXlqc21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzc1NTEsImV4cCI6MjA5OTk1MzU1MX0.Naocw-B0B6Z7CLg197yxLezd58a6f5XoMLEiea5b0Ro'
 const CLIENT = 'hubsandbabydoll'
 const OPTIN_FN = `${SUPA_URL}/functions/v1/hb-optin`
 
-// A2P-required disclosure — exact wording stored in DB for carrier audit trail
 const SMS_DISCLOSURE =
   'By providing your phone number and checking this box, you agree to receive recurring ' +
   'automated marketing text messages from Hubs & Babydoll at the number provided. ' +
   'Msg & data rates may apply. Consent is not a condition of purchase. ' +
   'Text STOP to cancel, HELP for help. Message frequency varies.'
 
-// Payment handles — fill these in to turn on one-tap payment at checkout.
-// (Leave blank and customers are told you'll send a payment request.)
 const PAY = {
-  cashApp: '', // your $Cashtag, without the $  e.g. 'HubsBabydoll'
-  venmo: '', // your Venmo username, without the @
-  paypal: '', // your PayPal.Me username
+  cashApp: '',
+  venmo: '',
+  paypal: '',
 }
 
 export default function CheckoutPage() {
   const { cart, subtotal, cartCount, clearCart } = useShoppingCart()
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [cardPaid, setCardPaid] = useState(false)
   const [paidTotal, setPaidTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -47,20 +43,72 @@ export default function CheckoutPage() {
   const [emailOptIn, setEmailOptIn] = useState(false)
   const [smsOptIn, setSmsOptIn] = useState(false)
 
-  // Reward / referral code
   const [code, setCode] = useState('')
   const [discount, setDiscount] = useState(0)
   const [codeLabel, setCodeLabel] = useState('')
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
+  // Square Web Payments SDK
+  const [squareConfig, setSquareConfig] = useState<{ appId: string; locationId: string } | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const squareCardRef = useRef<any>(null)
+  const [squareReady, setSquareReady] = useState(false)
+
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
-  // Payment amounts are scaled so the charged total matches the discounted total.
   const payItems = () => {
     const factor = subtotal > 0 ? total / subtotal : 1
     return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
   }
+
+  // Fetch Square config (appId + locationId — not secrets) on mount
+  useEffect(() => {
+    fetch(`${SUPA_URL}/functions/v1/hb-square-config`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+    })
+      .then((r) => r.json())
+      .then((cfg) => { if (cfg.appId && cfg.locationId) setSquareConfig(cfg) })
+      .catch(() => {})
+  }, [])
+
+  // Load Square.js and attach card form once config is ready
+  useEffect(() => {
+    if (!squareConfig) return
+    let cancelled = false
+
+    async function init() {
+      // Load the script if not already present
+      if (!document.getElementById('square-web-sdk')) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script')
+          s.id = 'square-web-sdk'
+          s.src = 'https://web.squareupcdn.com/v1/square.js'
+          s.onload = () => resolve()
+          s.onerror = () => reject(new Error('Square SDK failed to load'))
+          document.head.appendChild(s)
+        })
+      }
+      if (cancelled) return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sq = (window as any).Square
+      if (!sq) return
+      try {
+        const payments = await sq.payments(squareConfig.appId, squareConfig.locationId)
+        const card = await payments.card()
+        await card.attach('#square-card-container')
+        if (!cancelled) {
+          squareCardRef.current = card
+          setSquareReady(true)
+        }
+      } catch {
+        // Card form failed to mount — customer can still use "pay another way"
+      }
+    }
+
+    init()
+    return () => { cancelled = true }
+  }, [squareConfig])
 
   const applyCode = async () => {
     const c = code.trim()
@@ -93,15 +141,6 @@ export default function CheckoutPage() {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
-
-  // Returning from Square hosted checkout (success_url = /checkout?paid=1).
-  useEffect(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('paid') === '1') {
-      clearCart()
-      setDone(true)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const validate = () => {
     if (cart.length === 0) return 'Your cart is empty.'
@@ -146,7 +185,6 @@ export default function CheckoutPage() {
     })
     if (!res.ok) throw new Error('http ' + res.status)
 
-    // Count the code redemption (best-effort; never blocks the order).
     if (appliedCode) {
       fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
         method: 'POST',
@@ -155,7 +193,6 @@ export default function CheckoutPage() {
       }).catch(() => {})
     }
 
-    // Record marketing opt-in consent (fire-and-forget — never blocks the order)
     if (emailOptIn || smsOptIn) {
       fetch(OPTIN_FN, {
         method: 'POST',
@@ -171,8 +208,6 @@ export default function CheckoutPage() {
       }).catch(() => {})
     }
 
-    // Fire an email alert to the owner (turns on once RESEND_API_KEY is set;
-    // no-ops otherwise). Fire-and-forget — never blocks or fails the order.
     fetch(`${SUPA_URL}/functions/v1/hb-notify`, {
       method: 'POST',
       headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
@@ -189,34 +224,45 @@ export default function CheckoutPage() {
     }).catch(() => {})
   }
 
-  // Pay now with a card via Square hosted checkout.
-  const payBySquare = async () => {
+  // Pay on-page via Square Web Payments SDK
+  const payByCard = async () => {
     setError(null)
     const v = validate()
     if (v) return setError(v)
+    if (!squareCardRef.current || !squareReady) return setError('Card form is still loading — please wait a moment.')
     setSubmitting(true)
     try {
-      await recordOrder('Square (pending)')
-      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-checkout`, {
+      const result = await squareCardRef.current.tokenize()
+      if (result.status !== 'OK') {
+        setError(result.errors?.[0]?.message || 'Card verification failed — please check your details.')
+        setSubmitting(false)
+        return
+      }
+      await recordOrder('Card (Square)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-pay`, {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name.trim(),
+          sourceId: result.token,
+          amountCents: Math.round(total * 100),
           email: form.email.trim(),
-          phone: form.phone.trim(),
-          items: payItems(),
+          name: form.name.trim(),
         }),
       })
       const data = await res.json()
-      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start Square checkout.')
-      window.location.href = data.url
+      if (!res.ok || !data.success) throw new Error(data.error || 'Payment failed.')
+      setPaidTotal(total)
+      setCardPaid(true)
+      clearCart()
+      setDone(true)
+      window.scrollTo(0, 0)
     } catch (e) {
       setSubmitting(false)
-      setError(e instanceof Error ? e.message : 'Could not start Square checkout.')
+      setError(e instanceof Error ? e.message : 'Payment failed — please try again.')
     }
   }
 
-  // Place the order now and arrange payment after (tap-to-pay / invoice).
+  // Place the order and arrange payment manually (Cash App, Venmo, etc.)
   const placeOrder = async () => {
     setError(null)
     const v = validate()
@@ -241,13 +287,16 @@ export default function CheckoutPage() {
         <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 border border-primary flex items-center justify-center mb-8">
           <Check className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
+        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">
+          {cardPaid ? 'Payment received!' : 'Order received'}
+        </h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your
-          payment below and we&apos;ll get it handmade and on its way.
+          {cardPaid
+            ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment of $${paidTotal.toFixed(2)} went through. We’ll get your order handmade and on its way.`
+            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your payment below and we’ll get it handmade and on its way.`}
         </p>
 
-        <PaymentBox total={paidTotal} />
+        {!cardPaid && <PaymentBox total={paidTotal} />}
 
         <ReferFriend defaultEmail={form.email} />
 
@@ -355,13 +404,12 @@ export default function CheckoutPage() {
                     rows={2}
                     maxLength={300}
                     className="mt-3 w-full bg-input border border-border rounded-none px-4 py-3 text-foreground focus:outline-none focus:border-primary resize-y"
-                    placeholder="Add a gift message — we'll write it on a card…"
+                    placeholder="Add a gift message — we’ll write it on a card…"
                   />
                 )}
               </div>
             </fieldset>
 
-            {/* Marketing opt-in — both unchecked by default, consent not required for purchase */}
             <div className="border border-border rounded-sm p-4 flex flex-col gap-3">
               <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Stay updated (optional)</p>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -393,18 +441,35 @@ export default function CheckoutPage() {
               </label>
             </div>
 
+            {/* Square card form */}
+            {squareConfig && (
+              <div className="border border-border rounded-sm p-4">
+                <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground block mb-3">
+                  Card details
+                </span>
+                <div id="square-card-container" className="min-h-[89px]" />
+                {!squareReady && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Loading secure card form…
+                  </div>
+                )}
+              </div>
+            )}
+
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex flex-col gap-3">
               <Button
-                onClick={payBySquare}
-                disabled={submitting}
+                onClick={payByCard}
+                disabled={submitting || !squareReady}
                 className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
               >
                 {submitting ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Processing…</span>
+                ) : !squareReady ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Checkout · ${total.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay · ${total.toFixed(2)}</span>
                 )}
               </Button>
               <button
@@ -416,8 +481,8 @@ export default function CheckoutPage() {
                 Place order, pay another way
               </button>
             </div>
-            <p className=”text-xs text-muted-foreground -mt-1 leading-relaxed”>
-              Card payments are handled on a secure hosted page — your card never touches this site.
+            <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
+              Your card is processed securely by Square — it never touches this site.
               Prefer Cash App, Venmo, or in person? Choose &ldquo;pay another way&rdquo; and we&apos;ll confirm.
             </p>
           </div>
@@ -439,7 +504,6 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            {/* Reward / referral code */}
             <div className="border-t border-border mt-5 pt-5">
               {appliedCode ? (
                 <div className="flex items-center justify-between">
