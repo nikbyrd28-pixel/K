@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Cormorant_Garamond } from 'next/font/google'
 import { SiteShell } from '@/components/site-shell'
+import { AnalyticsTracker } from '@/components/analytics-tracker'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -150,6 +151,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <SiteShell>{children}</SiteShell>
+        <AnalyticsTracker />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

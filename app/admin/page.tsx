@@ -209,8 +209,49 @@ type Stats = {
   recentOrders: { id: number; created_at: string; name: string; service: string; status: string }[]
 }
 
+type AnalyticsData = {
+  totalViews: number
+  weekViews: number
+  todayViews: number
+  bounceRate: number
+  topPages: { page: string; views: number }[]
+  topReferrers: { referrer: string; visits: number }[]
+}
+
+function BounceGauge({ rate }: { rate: number }) {
+  const pct = Math.round(rate * 100)
+  const color = pct < 40 ? 'text-emerald-400' : pct < 60 ? 'text-amber-400' : 'text-red-400'
+  const bg = pct < 40 ? 'bg-emerald-400/15' : pct < 60 ? 'bg-amber-400/15' : 'bg-red-400/15'
+  const tip =
+    pct < 40
+      ? 'Crushing it. Keep testing your call-to-action buttons to push even higher.'
+      : pct < 60
+      ? 'Good, but there\'s room to grow. Try adding a limited-time offer above the fold.'
+      : 'High bounce rate — make sure there\'s a clear Shop button above the fold and the page loads fast on mobile.'
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-4">
+        <div className={`flex items-center gap-2 rounded-sm px-4 py-2.5 ${bg}`}>
+          <span className={`text-3xl font-serif ${color}`}>{pct}%</span>
+          <span className={`text-[11px] uppercase tracking-[0.12em] ${color}`}>bounce rate</span>
+        </div>
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-2 rounded-full transition-all ${pct < 40 ? 'bg-emerald-400' : pct < 60 ? 'bg-amber-400' : 'bg-red-400'}`}
+            style={{ width: `${Math.min(pct, 100)}%` }}
+          />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed border-l-2 border-primary/40 pl-3">
+        <span className="font-medium text-foreground">Win every visit:</span> {tip}
+      </p>
+    </div>
+  )
+}
+
 function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -218,8 +259,12 @@ function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => 
     setLoading(true)
     setErr(null)
     try {
-      const data = await call('stats')
-      setStats(data)
+      const [statsData, analyticsData] = await Promise.all([
+        call('stats'),
+        call('analytics').catch(() => null),
+      ])
+      setStats(statsData)
+      setAnalytics(analyticsData)
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not load stats.')
     } finally {
@@ -272,6 +317,62 @@ function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => 
           </div>
         </div>
       </div>
+
+      {/* Website analytics */}
+      {analytics && (
+        <div className="border border-border rounded-sm bg-card p-5 flex flex-col gap-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-primary">Website visits</p>
+
+          {/* Visit KPIs */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'All time', value: analytics.totalViews },
+              { label: 'This week', value: analytics.weekViews },
+              { label: 'Today', value: analytics.todayViews },
+            ].map((c) => (
+              <div key={c.label} className="flex flex-col">
+                <p className="text-2xl font-serif text-foreground">{c.value.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{c.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bounce rate gauge */}
+          <BounceGauge rate={analytics.bounceRate} />
+
+          {/* Top pages + referrers */}
+          {(analytics.topPages.length > 0 || analytics.topReferrers.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-border">
+              {analytics.topPages.length > 0 && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Top pages</p>
+                  <div className="flex flex-col gap-1.5">
+                    {analytics.topPages.map((p) => (
+                      <div key={p.page} className="flex items-center justify-between gap-2">
+                        <span className="text-xs truncate text-foreground">{p.page || '/'}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{p.views.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {analytics.topReferrers.length > 0 && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Top sources</p>
+                  <div className="flex flex-col gap-1.5">
+                    {analytics.topReferrers.map((r) => (
+                      <div key={r.referrer} className="flex items-center justify-between gap-2">
+                        <span className="text-xs truncate text-foreground">{r.referrer || 'Direct'}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{r.visits.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Recent orders */}
       {stats!.recentOrders.length > 0 && (
