@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
@@ -49,14 +49,6 @@ export default function CheckoutPage() {
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
-  // Square Web Payments SDK
-  const [squareConfig, setSquareConfig] = useState<{ appId: string; locationId: string } | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const squareCardRef = useRef<any>(null)
-  const [squareReady, setSquareReady] = useState(false)
-  // 'sdk' = inline card form, 'link' = fallback redirect to Square hosted page
-  const [squareMode, setSquareMode] = useState<'sdk' | 'link'>('sdk')
-
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
   const payItems = () => {
@@ -64,64 +56,20 @@ export default function CheckoutPage() {
     return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
   }
 
-  // Fetch Square config (appId + locationId — not secrets) on mount
+  // Returning from Square hosted checkout (?paid=1)
   useEffect(() => {
-    fetch(`${SUPA_URL}/functions/v1/hb-square-config`, {
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
-    })
-      .then((r) => r.json())
-      .then((cfg) => { if (cfg.appId && cfg.locationId) setSquareConfig(cfg) })
-      .catch(() => {})
+    if (typeof window === 'undefined') return
+    if (new URLSearchParams(window.location.search).get('paid') !== '1') return
+    const saved = parseFloat(localStorage.getItem('hb_paid_total') ?? '0')
+    localStorage.removeItem('hb_paid_total')
+    setPaidTotal(saved)
+    setCardPaid(true)
+    clearCart()
+    setDone(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Load Square.js and attach card form once config is ready
-  useEffect(() => {
-    if (!squareConfig) return
-    let cancelled = false
-
-    async function init() {
-      // Load the script if not already present
-      if (!document.getElementById('square-web-sdk')) {
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement('script')
-          s.id = 'square-web-sdk'
-          s.src = 'https://web.squareupcdn.com/v1/square.js'
-          s.onload = () => resolve()
-          s.onerror = () => reject(new Error('Square SDK failed to load'))
-          document.head.appendChild(s)
-        })
-      }
-      if (cancelled) return
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sq = (window as any).Square
-      if (!sq) return
-      try {
-        const payments = await sq.payments(squareConfig.appId, squareConfig.locationId)
-        const card = await payments.card()
-        await card.attach('#square-card-container')
-        if (!cancelled) {
-          squareCardRef.current = card
-          setSquareReady(true)
-        } else {
-          card.destroy?.()
-        }
-      } catch {
-        // SDK failed to mount (domain not registered in Square Dashboard, etc.)
-        // Fall back to Square-hosted payment link so checkout still works.
-        if (!cancelled) setSquareMode('link')
-      }
-    }
-
-    init()
-    return () => {
-      cancelled = true
-      squareCardRef.current?.destroy?.()
-      squareCardRef.current = null
-      setSquareReady(false)
-    }
-  }, [squareConfig])
-
-  // Re-validate applied code whenever cart subtotal changes
+  // Re-validate applied code when cart subtotal changes
   useEffect(() => {
     if (!appliedCode) return
     fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
@@ -140,7 +88,7 @@ export default function CheckoutPage() {
         }
       })
       .catch(() => {})
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtotal])
 
   const applyCode = async () => {
@@ -161,9 +109,8 @@ export default function CheckoutPage() {
         setCode(data.code || c.toUpperCase())
         setCodeMsg(null)
       } else {
-        setDiscount(0)
-        setCodeLabel('')
-        setCodeMsg(data.message || 'That code isn’t valid.')
+        setDiscount(0); setCodeLabel('')
+        setCodeMsg(data.message || 'That code isn't valid.')
       }
     } catch {
       setCodeMsg('Could not check that code — please try again.')
@@ -200,20 +147,14 @@ export default function CheckoutPage() {
     const res = await fetch(`${SUPA_URL}/rest/v1/client_leads`, {
       method: 'POST',
       headers: {
-        apikey: SUPA_KEY,
-        Authorization: `Bearer ${SUPA_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
+        apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json', Prefer: 'return=minimal',
       },
       body: JSON.stringify({
-        client: CLIENT,
-        kind: 'order',
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim(),
+        client: CLIENT, kind: 'order',
+        name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim(),
         service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${total.toFixed(2)}${appliedCode ? ` · ${appliedCode}` : ''} · ${payLabel}`,
-        pickup: ship,
-        message,
+        pickup: ship, message,
       }),
     })
     if (!res.ok) throw new Error('http ' + res.status)
@@ -245,20 +186,16 @@ export default function CheckoutPage() {
       method: 'POST',
       headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim(),
-        total: total.toFixed(2),
-        method: form.method,
-        ship,
+        name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim(),
+        total: total.toFixed(2), method: form.method, ship,
         payment: payLabel + (appliedCode ? ` · code ${appliedCode}` : ''),
         items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
       }),
     }).catch(() => {})
   }
 
-  // Fallback: redirect to Square-hosted payment page (used when SDK can't init)
-  const payByLink = async () => {
+  // Pay via Square hosted checkout page
+  const payBySquare = async () => {
     setError(null)
     const v = validate()
     if (v) return setError(v)
@@ -268,10 +205,15 @@ export default function CheckoutPage() {
       const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-checkout`, {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), items: payItems() }),
+        body: JSON.stringify({
+          name: form.name.trim(), email: form.email.trim(),
+          phone: form.phone.trim(), items: payItems(),
+        }),
       })
       const data = await res.json()
       if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.')
+      // Save total so confirmation page can show the right amount after redirect
+      localStorage.setItem('hb_paid_total', total.toFixed(2))
       window.location.href = data.url
     } catch (e) {
       setSubmitting(false)
@@ -279,46 +221,7 @@ export default function CheckoutPage() {
     }
   }
 
-  // Pay on-page via Square Web Payments SDK
-  const payByCard = async () => {
-    setError(null)
-    const v = validate()
-    if (v) return setError(v)
-    if (!squareCardRef.current || !squareReady) return setError('Card form is still loading — please wait a moment.')
-    setSubmitting(true)
-    try {
-      const result = await squareCardRef.current.tokenize()
-      if (result.status !== 'OK') {
-        setError(result.errors?.[0]?.message || 'Card verification failed — please check your details.')
-        setSubmitting(false)
-        return
-      }
-      // Charge the card first — only record the order once payment is confirmed
-      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-pay`, {
-        method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sourceId: result.token,
-          amountCents: Math.round(total * 100),
-          email: form.email.trim(),
-          name: form.name.trim(),
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || 'Payment failed.')
-      await recordOrder(`Card (Square · ${data.paymentId ?? 'paid'})`)
-      setPaidTotal(total)
-      setCardPaid(true)
-      clearCart()
-      setDone(true)
-      window.scrollTo(0, 0)
-    } catch (e) {
-      setSubmitting(false)
-      setError(e instanceof Error ? e.message : 'Payment failed — please try again.')
-    }
-  }
-
-  // Place the order and arrange payment manually (Cash App, Venmo, etc.)
+  // Place order and pay another way (Cash App, Venmo, in person, etc.)
   const placeOrder = async () => {
     setError(null)
     const v = validate()
@@ -348,8 +251,8 @@ export default function CheckoutPage() {
         </h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
           {cardPaid
-            ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment of $${paidTotal.toFixed(2)} went through. We’ll get your order handmade and on its way.`
-            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your payment below and we’ll get it handmade and on its way.`}
+            ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment${paidTotal > 0 ? ` of $${paidTotal.toFixed(2)}` : ''} went through. We'll get your order handmade and on its way.`
+            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your payment below and we'll get it handmade and on its way.`}
         </p>
 
         {!cardPaid && <PaymentBox total={paidTotal} />}
@@ -460,7 +363,7 @@ export default function CheckoutPage() {
                     rows={2}
                     maxLength={300}
                     className="mt-3 w-full bg-input border border-border rounded-none px-4 py-3 text-foreground focus:outline-none focus:border-primary resize-y"
-                    placeholder="Add a gift message — we’ll write it on a card…"
+                    placeholder="Add a gift message — we'll write it on a card…"
                   />
                 )}
               </div>
@@ -497,35 +400,18 @@ export default function CheckoutPage() {
               </label>
             </div>
 
-            {/* Square card form — only shown when SDK initialized successfully */}
-            {squareConfig && squareMode === 'sdk' && (
-              <div className="border border-border rounded-sm p-4">
-                <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground block mb-3">
-                  Card details
-                </span>
-                <div id="square-card-container" className="min-h-[89px]" />
-                {!squareReady && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Loading secure card form…
-                  </div>
-                )}
-              </div>
-            )}
-
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex flex-col gap-3">
               <Button
-                onClick={squareMode === 'link' ? payByLink : payByCard}
-                disabled={submitting || (squareMode === 'sdk' && !squareReady)}
+                onClick={payBySquare}
+                disabled={submitting}
                 className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
               >
                 {submitting ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Processing…</span>
-                ) : squareMode === 'sdk' && !squareReady ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</span>
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay · ${total.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Checkout · ${total.toFixed(2)}</span>
                 )}
               </Button>
               <button
@@ -538,7 +424,7 @@ export default function CheckoutPage() {
               </button>
             </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
-              Your card is processed securely by Square — it never touches this site.
+              Card payments are handled on a secure Square page — your card never touches this site.
               Prefer Cash App, Venmo, or in person? Choose &ldquo;pay another way&rdquo; and we&apos;ll confirm.
             </p>
           </div>
