@@ -12,7 +12,7 @@ const sections = [
     body: [
       'When you place an order, we collect the information needed to fulfill it: your name, email address, phone number, and shipping address.',
       'When you sign up for our email list, we collect your name and email address.',
-      'We do not store your payment card details. All payment processing is handled by our payment partners (Square or Stripe), who have their own privacy and security practices.',
+      'We do not collect or store payment card details on this website. Payment is arranged personally after you place your order, through the payment method you choose (such as Cash App, Venmo, or in person).',
     ],
   },
   {
@@ -26,7 +26,7 @@ const sections = [
   {
     heading: 'Third-Party Services',
     body: [
-      'We use Supabase to securely store order and subscriber data. We use Square and Stripe to process payments. These services have their own privacy policies that govern how they handle your data.',
+      'We use Supabase to securely store order and subscriber data. If you pay through a third-party payment app (such as Cash App or Venmo), that service has its own privacy policy that governs how it handles your data.',
       'Our website uses basic analytics (page views and session data stored in our own database) to help us understand how visitors use the site. We do not use third-party tracking pixels or sell browsing data.',
     ],
   },
