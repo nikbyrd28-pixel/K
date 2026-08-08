@@ -110,7 +110,7 @@ export default function CheckoutPage() {
         setCodeMsg(null)
       } else {
         setDiscount(0); setCodeLabel('')
-        setCodeMsg(data.message || 'That code isn't valid.')
+        setCodeMsg(data.message || 'That code is not valid.')
       }
     } catch {
       setCodeMsg('Could not check that code — please try again.')
