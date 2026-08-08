@@ -185,6 +185,12 @@ export default function AdminPage() {
             {label}
           </button>
         ))}
+        <Link
+          href="/studio"
+          className="px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+        >
+          Studio ↗
+        </Link>
       </div>
 
       {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
