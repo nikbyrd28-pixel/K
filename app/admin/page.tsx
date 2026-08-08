@@ -1788,7 +1788,7 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
   const [admins, setAdmins] = useState<Admin[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
-  const [draft, setDraft] = useState({ name: '', password: '', role: 'helper' as 'helper' | 'owner' })
+  const [draft, setDraft] = useState({ name: '', password: '', role: 'helper' as 'helper' | 'owner' | 'manager' | 'editor' })
 
   const load = useCallback(async () => {
     setErr(null)
@@ -1864,10 +1864,12 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
           />
           <select
             value={draft.role}
-            onChange={(e) => setDraft({ ...draft, role: e.target.value as 'helper' | 'owner' })}
+            onChange={(e) => setDraft({ ...draft, role: e.target.value as 'helper' | 'owner' | 'manager' | 'editor' })}
             className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
           >
             <option value="helper">Helper</option>
+            <option value="manager">Marketing manager (schedules &amp; posts)</option>
+            <option value="editor">Editor (edits content only)</option>
             <option value="owner">Owner (full access)</option>
           </select>
         </div>
