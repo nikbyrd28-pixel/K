@@ -221,14 +221,14 @@ export default function CheckoutPage() {
     }
   }
 
-  // Place order and pay another way (Cash App, Venmo, in person, etc.)
+  // Place order and pay in person at pickup or delivery
   const placeOrder = async () => {
     setError(null)
     const v = validate()
     if (v) return setError(v)
     setSubmitting(true)
     try {
-      await recordOrder('Pay on confirmation')
+      await recordOrder('Pay in person')
       setPaidTotal(total)
       clearCart()
       setDone(true)
@@ -252,7 +252,7 @@ export default function CheckoutPage() {
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
           {cardPaid
             ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment${paidTotal > 0 ? ` of $${paidTotal.toFixed(2)}` : ''} went through. We'll get your order handmade and on its way.`
-            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your payment below and we'll get it handmade and on its way.`}
+            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. You'll pay in person at pickup or delivery, and we'll get it handmade and on its way.`}
         </p>
 
         {!cardPaid && <PaymentBox total={paidTotal} />}
@@ -420,12 +420,12 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
               >
-                Place order, pay another way
+                Place order, pay in person
               </button>
             </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
               Card payments are handled on a secure Square page — your card never touches this site.
-              Prefer Cash App, Venmo, or in person? Choose &ldquo;pay another way&rdquo; and we&apos;ll confirm.
+              Prefer to pay in person? Place your order and pay at pickup or delivery.
             </p>
           </div>
 
@@ -565,7 +565,7 @@ function PaymentBox({ total }: { total: number }) {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          We&apos;ll send you a quick payment request to finish up — thank you for your patience.
+          You&apos;ll pay in person at pickup or delivery — we&apos;ll confirm everything with you personally.
         </p>
       )}
     </div>
