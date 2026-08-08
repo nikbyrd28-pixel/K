@@ -54,6 +54,8 @@ export default function CheckoutPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const squareCardRef = useRef<any>(null)
   const [squareReady, setSquareReady] = useState(false)
+  // 'sdk' = inline card form, 'link' = fallback redirect to Square hosted page
+  const [squareMode, setSquareMode] = useState<'sdk' | 'link'>('sdk')
 
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
@@ -104,7 +106,9 @@ export default function CheckoutPage() {
           card.destroy?.()
         }
       } catch {
-        // Card form failed to mount — customer can still use "pay another way"
+        // SDK failed to mount (domain not registered in Square Dashboard, etc.)
+        // Fall back to Square-hosted payment link so checkout still works.
+        if (!cancelled) setSquareMode('link')
       }
     }
 
@@ -251,6 +255,28 @@ export default function CheckoutPage() {
         items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
       }),
     }).catch(() => {})
+  }
+
+  // Fallback: redirect to Square-hosted payment page (used when SDK can't init)
+  const payByLink = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
+    setSubmitting(true)
+    try {
+      await recordOrder('Square (pending)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-checkout`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), items: payItems() }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.')
+      window.location.href = data.url
+    } catch (e) {
+      setSubmitting(false)
+      setError(e instanceof Error ? e.message : 'Could not start checkout.')
+    }
   }
 
   // Pay on-page via Square Web Payments SDK
@@ -471,8 +497,8 @@ export default function CheckoutPage() {
               </label>
             </div>
 
-            {/* Square card form */}
-            {squareConfig && (
+            {/* Square card form — only shown when SDK initialized successfully */}
+            {squareConfig && squareMode === 'sdk' && (
               <div className="border border-border rounded-sm p-4">
                 <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground block mb-3">
                   Card details
@@ -490,13 +516,13 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col gap-3">
               <Button
-                onClick={payByCard}
-                disabled={submitting || !squareReady}
+                onClick={squareMode === 'link' ? payByLink : payByCard}
+                disabled={submitting || (squareMode === 'sdk' && !squareReady)}
                 className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Processing…</span>
-                ) : !squareReady ? (
+                ) : squareMode === 'sdk' && !squareReady ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</span>
                 ) : (
                   <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay · ${total.toFixed(2)}</span>
