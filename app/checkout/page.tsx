@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Loader2, Check, ChevronLeft } from 'lucide-react'
+import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
 import { ReferFriend } from '@/components/refer-friend'
@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const { cart, subtotal, cartCount, clearCart } = useShoppingCart()
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [cardPaid, setCardPaid] = useState(false)
   const [paidTotal, setPaidTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -50,6 +51,23 @@ export default function CheckoutPage() {
 
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
+  const payItems = () => {
+    const factor = subtotal > 0 ? total / subtotal : 1
+    return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
+  }
+
+  // Returning from Square hosted checkout (?paid=1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (new URLSearchParams(window.location.search).get('paid') !== '1') return
+    const saved = parseFloat(localStorage.getItem('hb_paid_total') ?? '0')
+    localStorage.removeItem('hb_paid_total')
+    setPaidTotal(saved)
+    setCardPaid(true)
+    clearCart()
+    setDone(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Re-validate applied code when cart subtotal changes
   useEffect(() => {
@@ -176,7 +194,34 @@ export default function CheckoutPage() {
     }).catch(() => {})
   }
 
-  // Place the order — payment is confirmed personally (Cash App, Venmo, card, in person)
+  // Pay via Square hosted checkout page
+  const payBySquare = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
+    setSubmitting(true)
+    try {
+      await recordOrder('Square (pending)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-checkout`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(), email: form.email.trim(),
+          phone: form.phone.trim(), items: payItems(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.')
+      // Save total so confirmation page can show the right amount after redirect
+      localStorage.setItem('hb_paid_total', total.toFixed(2))
+      window.location.href = data.url
+    } catch (e) {
+      setSubmitting(false)
+      setError(e instanceof Error ? e.message : 'Could not start checkout.')
+    }
+  }
+
+  // Place order and pay another way (Cash App, Venmo, in person, etc.)
   const placeOrder = async () => {
     setError(null)
     const v = validate()
@@ -201,12 +246,16 @@ export default function CheckoutPage() {
         <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 border border-primary flex items-center justify-center mb-8">
           <Check className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
+        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">
+          {cardPaid ? 'Payment received!' : 'Order received'}
+        </h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-          {`Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. We'll confirm your payment personally and get it handmade and on its way.`}
+          {cardPaid
+            ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment${paidTotal > 0 ? ` of $${paidTotal.toFixed(2)}` : ''} went through. We'll get your order handmade and on its way.`
+            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your payment below and we'll get it handmade and on its way.`}
         </p>
 
-        <PaymentBox total={paidTotal} />
+        {!cardPaid && <PaymentBox total={paidTotal} />}
 
         <ReferFriend defaultEmail={form.email} />
 
@@ -353,20 +402,30 @@ export default function CheckoutPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button
-              onClick={placeOrder}
-              disabled={submitting}
-              className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
-            >
-              {submitting ? (
-                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Placing order…</span>
-              ) : (
-                <span>Place order · ${total.toFixed(2)}</span>
-              )}
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={payBySquare}
+                disabled={submitting}
+                className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
+              >
+                {submitting ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting checkout…</span>
+                ) : (
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Checkout · ${total.toFixed(2)}</span>
+                )}
+              </Button>
+              <button
+                type="button"
+                onClick={placeOrder}
+                disabled={submitting}
+                className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
+              >
+                Place order, pay another way
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
-              No payment is taken on this site. We confirm every order personally — pay by Cash App,
-              Venmo, card, or in person, whatever&apos;s easiest for you.
+              Card payments are handled on a secure Square page — your card never touches this site.
+              Prefer Cash App, Venmo, or in person? Choose &ldquo;pay another way&rdquo; and we&apos;ll confirm.
             </p>
           </div>
 
