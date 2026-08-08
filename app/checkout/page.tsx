@@ -100,6 +100,8 @@ export default function CheckoutPage() {
         if (!cancelled) {
           squareCardRef.current = card
           setSquareReady(true)
+        } else {
+          card.destroy?.()
         }
       } catch {
         // Card form failed to mount — customer can still use "pay another way"
@@ -107,8 +109,35 @@ export default function CheckoutPage() {
     }
 
     init()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      squareCardRef.current?.destroy?.()
+      squareCardRef.current = null
+      setSquareReady(false)
+    }
   }, [squareConfig])
+
+  // Re-validate applied code whenever cart subtotal changes
+  useEffect(() => {
+    if (!appliedCode) return
+    fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'validate', code: appliedCode, subtotal }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.valid) {
+          setDiscount(0); setCode(''); setCodeLabel('')
+          setCodeMsg(data.message || 'Code no longer applies — check your cart.')
+        } else {
+          setDiscount(data.discount)
+          setCodeLabel(data.label || codeLabel)
+        }
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal])
 
   const applyCode = async () => {
     const c = code.trim()
@@ -238,7 +267,7 @@ export default function CheckoutPage() {
         setSubmitting(false)
         return
       }
-      await recordOrder('Card (Square)')
+      // Charge the card first — only record the order once payment is confirmed
       const res = await fetch(`${SUPA_URL}/functions/v1/hb-square-pay`, {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
@@ -251,6 +280,7 @@ export default function CheckoutPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || 'Payment failed.')
+      await recordOrder(`Card (Square · ${data.paymentId ?? 'paid'})`)
       setPaidTotal(total)
       setCardPaid(true)
       clearCart()
