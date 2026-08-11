@@ -49,11 +49,35 @@ export default function CheckoutPage() {
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
-  const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
+  // Shipping settings come from the backend so the owner can change them anytime
+  const [shipFee, setShipFee] = useState(0)
+  const [freeOver, setFreeOver] = useState(0)
+  useEffect(() => {
+    fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'config' }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.shipping_fee === 'number') setShipFee(d.shipping_fee)
+        if (typeof d.free_shipping_over === 'number') setFreeOver(d.free_shipping_over)
+      })
+      .catch(() => {})
+  }, [])
+
+  const goodsTotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
+  const shipping =
+    form.method === 'Ship to me' && shipFee > 0 && !(freeOver > 0 && goodsTotal >= freeOver)
+      ? Math.round(shipFee * 100) / 100
+      : 0
+  const total = Math.round((goodsTotal + shipping) * 100) / 100
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
   const payItems = () => {
-    const factor = subtotal > 0 ? total / subtotal : 1
-    return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
+    const factor = subtotal > 0 ? goodsTotal / subtotal : 1
+    const items = cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
+    if (shipping > 0) items.push({ name: 'Shipping', amount: shipping, quantity: 1 })
+    return items
   }
 
   // Returning from Square hosted checkout (?paid=1)
@@ -139,7 +163,9 @@ export default function CheckoutPage() {
         : form.method
     const message =
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
-      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\nTotal: $${total.toFixed(2)}\n` : '') +
+      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\n` : '') +
+      (shipping > 0 ? `Shipping: $${shipping.toFixed(2)}\n` : form.method === 'Ship to me' ? 'Shipping: FREE\n' : '') +
+      `Total: $${total.toFixed(2)}\n` +
       `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
       (isGift ? `🎁 GIFT${giftMessage ? ` — message: "${giftMessage}"` : ''}\n` : '') +
@@ -490,6 +516,21 @@ export default function CheckoutPage() {
                   <span>Discount ({codeLabel})</span>
                   <span>−${discount.toFixed(2)}</span>
                 </div>
+              )}
+              {form.method === 'Ship to me' && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  {shipping > 0 ? (
+                    <span>${shipping.toFixed(2)}</span>
+                  ) : (
+                    <span className="text-primary">Free</span>
+                  )}
+                </div>
+              )}
+              {form.method === 'Ship to me' && shipping > 0 && freeOver > 0 && goodsTotal < freeOver && (
+                <p className="text-[11px] text-muted-foreground">
+                  Free shipping on orders over ${freeOver.toFixed(0)} — you&apos;re ${(freeOver - goodsTotal).toFixed(2)} away.
+                </p>
               )}
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Estimated total</span>
