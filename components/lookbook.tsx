@@ -2,10 +2,10 @@ import Image from 'next/image'
 
 // Editorial image gallery of the professional studio photography.
 const SHOTS = [
-  { src: '/products/pro-brand-box.jpg', alt: 'Hubs & Babydoll signature gift box' },
-  { src: '/products/pro-heard-bay-rum-set.jpg', alt: 'HEARD Bay Rum gift set' },
-  { src: '/products/pro-seen-lavender-portrait.jpg', alt: 'SEEN Lavender Rose gift set with roses' },
-  { src: '/products/pro-bay-rum-beard-set.jpg', alt: 'HEARD Bay Rum beard care set' },
+  { src: 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/lookbook/pro-brand-box.png?width=1200&quality=80', alt: 'Hubs & Babydoll signature gift box' },
+  { src: 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/lookbook/pro-heard-bay-rum-set.png?width=1200&quality=80', alt: 'HEARD Bay Rum gift set' },
+  { src: 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/lookbook/pro-seen-lavender-portrait.png?width=1200&quality=80', alt: 'SEEN Lavender Rose gift set with roses' },
+  { src: 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/lookbook/pro-bay-rum-beard-set.png?width=1200&quality=80', alt: 'HEARD Bay Rum beard care set' },
 ]
 
 export function Lookbook() {

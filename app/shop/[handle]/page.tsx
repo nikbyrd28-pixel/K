@@ -110,7 +110,8 @@ export default function ProductDetailPage() {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-          {/* Full product image */}
+          {/* Full product image (+ styled lifestyle shot below when available) */}
+          <div className="flex flex-col gap-4">
           <div className="relative aspect-square bg-card border border-border/60 overflow-hidden">
             {product.image ? (
               <Image
@@ -131,6 +132,18 @@ export default function ProductDetailPage() {
                 {badge}
               </span>
             )}
+          </div>
+          {product.image2 && (
+            <div className="relative aspect-square bg-card border border-border/60 overflow-hidden">
+              <Image
+                src={product.image2}
+                alt={`${name} — styled with its signature scent notes`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          )}
           </div>
 
           {/* Details + buy */}

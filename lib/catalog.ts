@@ -228,12 +228,13 @@ export type ProductRow = {
   name: string
   description: string
   image: string
+  image2?: string
   sizes: CatalogSize[]
   sort: number
   active: boolean
 }
 
-export type EffectiveItem = CatalogItem & { active: boolean; sort: number }
+export type EffectiveItem = CatalogItem & { active: boolean; sort: number; image2?: string }
 
 /** Layer the owner's saved edits (rows) on top of the built-in CATALOG. */
 export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
@@ -249,6 +250,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
       name: r.name || item.name,
       description: r.description ?? item.description,
       image: r.image || item.image,
+      image2: r.image2 || '',
       imageAlt: item.imageAlt || r.name || item.name,
       sizes: Array.isArray(r.sizes) && r.sizes.length ? r.sizes : item.sizes,
       active: r.active !== false,
@@ -264,6 +266,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
       name: r.name,
       description: r.description,
       image: r.image,
+      image2: r.image2 || '',
       imageAlt: r.name,
       sizes: Array.isArray(r.sizes) ? r.sizes : [],
       active: r.active !== false,

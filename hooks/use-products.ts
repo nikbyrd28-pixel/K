@@ -7,6 +7,7 @@ export interface Product {
   title: string
   description: string
   image: string
+  image2: string
   imageAlt: string
   price: string
   variantId: string
@@ -55,6 +56,7 @@ export function useProducts() {
       title: item.name,
       description: item.description,
       image: item.image,
+      image2: item.image2 || '',
       imageAlt: item.imageAlt,
       price: item.sizes[0]?.price?.toFixed(2) ?? '0',
       variantId: `hb-${item.handle}-v`,
