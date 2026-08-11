@@ -10,7 +10,7 @@ function HeroSection() {
   return (
     <section className="relative bg-background min-h-[90vh] flex items-center">
       <Image
-        src="/hero.png"
+        src="https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/hero-4k.png?width=2400&quality=80"
         alt="Founder of Hubs & Babydoll with the Hubs & Babydoll body boxes"
         fill
         className="object-cover object-center"
