@@ -882,7 +882,7 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
             .address-box { border: 2px solid #000; padding: 0.1in; min-height: 1.2in; font-size: 11px; line-height: 1.3; }
             .qr-section { text-align: center; margin-bottom: 0.15in; }
             .qr-section img { max-width: 1in; height: auto; }
-            .barcode-area { text-align: center; border: 2px solid #000; padding: 0.15in; min-height: 0.6in; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; word-break: break-all; }
+            .barcode-area { text-align: center; border: 3px solid #000; padding: 0.2in; min-height: 0.8in; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; word-break: break-all; background-color: #fff; }
             .order-info { font-size: 8px; margin-top: 0.1in; text-align: center; }
           </style>
         </head>
@@ -974,7 +974,7 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
               <img src={getQRCodeUrl()} alt="QR Code" style={{ width: '100px', height: '100px' }} />
             </div>
 
-            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px', color: '#000', marginBottom: '10px', wordBreak: 'break-all' }}>
+            <div style={{ textAlign: 'center', border: '3px solid #000', padding: '12px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000', marginBottom: '10px', wordBreak: 'break-all', backgroundColor: '#fff' }}>
               {order.tracking_number || 'NO TRACKING #'}
             </div>
 
