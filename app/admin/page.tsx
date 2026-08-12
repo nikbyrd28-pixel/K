@@ -184,20 +184,41 @@ export default function AdminPage() {
   const userRole = user?.role || 'owner'
   const userPermissions = ROLE_PERMISSIONS[userRole]?.canAccess || []
 
-  const allTabs: { key: typeof tab; label: string }[] = [
-    { key: 'orders', label: 'Orders' },
-    { key: 'customers', label: 'Customers' },
-    { key: 'products', label: 'Products' },
-    { key: 'studio', label: 'Studio' },
-    { key: 'scripts', label: 'Scripts' },
-    { key: 'videos', label: 'Videos' },
-    { key: 'distribute', label: 'Distribute' },
-    { key: 'rewards', label: 'Rewards' },
-    { key: 'stats', label: 'Stats' },
-    { key: 'team', label: 'Team' },
-  ]
+  const tabsByRole: Record<DashUser['role'], { key: typeof tab; label: string; group?: string }[]> = {
+    owner: [
+      { key: 'orders', label: 'Orders', group: 'Business' },
+      { key: 'customers', label: 'Customers', group: 'Business' },
+      { key: 'products', label: 'Products', group: 'Business' },
+      { key: 'rewards', label: 'Rewards', group: 'Business' },
+      { key: 'stats', label: 'Analytics', group: 'Analytics' },
+      { key: 'studio', label: 'Product Studio', group: 'Content Creation' },
+      { key: 'scripts', label: 'Script Library', group: 'Content Creation' },
+      { key: 'videos', label: 'Video Library', group: 'Content Creation' },
+      { key: 'distribute', label: 'Distribution', group: 'Content Creation' },
+      { key: 'team', label: 'Team Management', group: 'Settings' },
+    ],
+    script_writer: [
+      { key: 'studio', label: 'Generate Scripts', group: 'Your Workspace' },
+      { key: 'scripts', label: 'Your Scripts', group: 'Your Workspace' },
+      { key: 'products', label: 'Products', group: 'Reference' },
+    ],
+    video_editor: [
+      { key: 'scripts', label: 'Scripts to Edit', group: 'Your Workspace' },
+      { key: 'videos', label: 'Your Videos', group: 'Your Workspace' },
+      { key: 'products', label: 'Products', group: 'Reference' },
+    ],
+    distributor: [
+      { key: 'videos', label: 'Ready Videos', group: 'Your Workspace' },
+      { key: 'distribute', label: 'Post to Platforms', group: 'Your Workspace' },
+      { key: 'stats', label: 'Performance', group: 'Analytics' },
+    ],
+    analyst: [
+      { key: 'stats', label: 'Analytics', group: 'Your Workspace' },
+      { key: 'orders', label: 'Orders', group: 'Reference' },
+    ],
+  }
 
-  const tabs = allTabs.filter(t => userPermissions.includes(t.key))
+  const tabs = tabsByRole[userRole] || []
 
   return (
     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
@@ -228,28 +249,36 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto">
-        {tabs.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={[
-              'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors whitespace-nowrap',
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
-            ].join(' ')}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mb-8">
+        <div className="flex gap-1 border-b border-border overflow-x-auto">
+          {tabs.map(({ key, label, group }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={[
+                'px-5 py-3 text-xs uppercase tracking-[0.2em] -mb-px border-b-2 transition-colors whitespace-nowrap',
+                tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+                group === 'Your Workspace' && !tabs.find(t => t.group === 'Your Workspace' && t.key === tab) && 'font-medium',
+              ].join(' ')}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {user && user.role !== 'owner' && (
+          <div className="mt-2 px-5 py-2 text-xs text-muted-foreground bg-muted/30 rounded-sm">
+            <span className="text-primary font-medium">{ROLE_PERMISSIONS[user.role]?.name}</span> — {ROLE_PERMISSIONS[user.role]?.description}
+          </div>
+        )}
       </div>
 
       {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
       {tab === 'customers' && <CustomersTab call={call} />}
       {tab === 'products' && <ProductsTab call={call} />}
       {tab === 'studio' && <StudioTab call={call} />}
-      {tab === 'scripts' && <ScriptsPortal call={call} />}
-      {tab === 'videos' && <VideosPortal call={call} />}
-      {tab === 'distribute' && <DistributePortal call={call} />}
+      {tab === 'scripts' && <ScriptsPortal call={call} userRole={user?.role} />}
+      {tab === 'videos' && <VideosPortal call={call} userRole={user?.role} />}
+      {tab === 'distribute' && <DistributePortal call={call} userRole={user?.role} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
       {tab === 'stats' && <StatsTab call={call} />}
       {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
@@ -1991,10 +2020,12 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
   )
 }
 
-function ScriptsPortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+function ScriptsPortal({ call, userRole }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; userRole?: DashUser['role'] }) {
   const [scripts, setScripts] = useState<any[]>([])
   const [newScript, setNewScript] = useState({ title: '', product: '', content: '', status: 'draft' })
   const [msg, setMsg] = useState<string | null>(null)
+  const isScriptWriter = userRole === 'script_writer'
+  const isVideoEditor = userRole === 'video_editor'
 
   useEffect(() => {
     const saved = localStorage.getItem('hb_scripts')
@@ -2009,7 +2040,7 @@ function ScriptsPortal({ call }: { call: (a: string, e?: Record<string, unknown>
     const updated = [...scripts, { ...newScript, id: Date.now(), created: new Date().toISOString() }]
     setScripts(updated)
     localStorage.setItem('hb_scripts', JSON.stringify(updated))
-    setMsg('✓ Script saved')
+    setMsg('✓ Script saved and ready for video editor')
     setNewScript({ title: '', product: '', content: '', status: 'draft' })
     setTimeout(() => setMsg(null), 3000)
   }
@@ -2029,8 +2060,16 @@ function ScriptsPortal({ call }: { call: (a: string, e?: Record<string, unknown>
   return (
     <div className="space-y-6">
       <div className="p-4 bg-muted/30 border border-border rounded-sm">
-        <h3 className="font-serif text-lg mb-2">Scripts Portal</h3>
-        <p className="text-sm text-muted-foreground">Scripts are stored locally. Create here, then send to video editor. Status: Draft → In Progress → Ready for Video</p>
+        <h3 className="font-serif text-lg mb-2">
+          {isScriptWriter ? '📝 Your Scripts' : isVideoEditor ? '📖 Scripts to Edit' : 'Scripts Library'}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {isScriptWriter
+            ? 'Create video scripts using the Studio tab. Mark them "Ready" when the video editor should start working.'
+            : isVideoEditor
+            ? 'View scripts approved for video creation. Download scripts and mark progress as you work.'
+            : 'All scripts across the team. Track status and manage workflow.'}
+        </p>
       </div>
 
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
@@ -2077,10 +2116,12 @@ function ScriptsPortal({ call }: { call: (a: string, e?: Record<string, unknown>
   )
 }
 
-function VideosPortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+function VideosPortal({ call, userRole }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; userRole?: DashUser['role'] }) {
   const [videos, setVideos] = useState<any[]>([])
   const [upload, setUpload] = useState({ title: '', script_id: '', file: null as File | null, status: 'draft' })
   const [msg, setMsg] = useState<string | null>(null)
+  const isVideoEditor = userRole === 'video_editor'
+  const isDistributor = userRole === 'distributor'
 
   useEffect(() => {
     const saved = localStorage.getItem('hb_videos')
@@ -2108,7 +2149,7 @@ function VideosPortal({ call }: { call: (a: string, e?: Record<string, unknown>)
       }]
       setVideos(updated)
       localStorage.setItem('hb_videos', JSON.stringify(updated))
-      setMsg('✓ Video uploaded')
+      setMsg('✓ Video uploaded and ready to distribute!')
       setUpload({ title: '', script_id: '', file: null, status: 'draft' })
       setTimeout(() => setMsg(null), 3000)
     }
@@ -2130,8 +2171,16 @@ function VideosPortal({ call }: { call: (a: string, e?: Record<string, unknown>)
   return (
     <div className="space-y-6">
       <div className="p-4 bg-muted/30 border border-border rounded-sm">
-        <h3 className="font-serif text-lg mb-2">Videos Portal</h3>
-        <p className="text-sm text-muted-foreground">Upload finished videos here. Status: Draft → Reviewing → Ready to Ship → Posted</p>
+        <h3 className="font-serif text-lg mb-2">
+          {isVideoEditor ? '🎬 Your Video Uploads' : isDistributor ? '✅ Ready to Post' : '📹 Video Library'}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {isVideoEditor
+            ? 'Upload finished videos here for distribution. Statuses: Draft → Reviewing → Ready → Posted'
+            : isDistributor
+            ? 'Videos ready to post. Select which platforms to post to in the Distribution tab.'
+            : 'All videos uploaded by the team. Track status and distribution progress.'}
+        </p>
       </div>
 
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
@@ -2187,7 +2236,7 @@ function VideosPortal({ call }: { call: (a: string, e?: Record<string, unknown>)
   )
 }
 
-function DistributePortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+function DistributePortal({ call, userRole }: { call: (a: string, e?: Record<string, unknown>) => Promise<any>; userRole?: DashUser['role'] }) {
   const [distributions, setDistributions] = useState<any[]>([])
   const [newDistro, setNewDistro] = useState({ video_id: '', platforms: [] as string[], links: { tiktok: '', instagram: '', youtube: '' } })
   const [msg, setMsg] = useState<string | null>(null)
@@ -2221,11 +2270,17 @@ function DistributePortal({ call }: { call: (a: string, e?: Record<string, unkno
     })
   }
 
+  const isDistributor = userRole === 'distributor'
+  const title = isDistributor ? '🚀 Post to Platforms' : 'Distribution & Analytics'
+  const desc = isDistributor
+    ? 'Select videos ready to distribute and post to your assigned platforms'
+    : 'Track which videos went to which platforms. Store post links for performance monitoring.'
+
   return (
     <div className="space-y-6">
       <div className="p-4 bg-muted/30 border border-border rounded-sm">
-        <h3 className="font-serif text-lg mb-2">Distribution & Analytics</h3>
-        <p className="text-sm text-muted-foreground">Track which videos went to which platforms. Store post links for performance monitoring.</p>
+        <h3 className="font-serif text-lg mb-2">{title}</h3>
+        <p className="text-sm text-muted-foreground">{desc}</p>
       </div>
 
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
