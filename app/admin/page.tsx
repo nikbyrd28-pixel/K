@@ -851,10 +851,11 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
 
 function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [address, setAddress] = useState('')
+  const [tracking, setTracking] = useState(order.tracking_number || '')
   const labelRef = useRef<HTMLDivElement>(null)
 
   const getQRCodeUrl = () => {
-    const qrData = order.tracking_number || `Order-${order.id}`
+    const qrData = tracking || `Order-${order.id}`
     return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`
   }
 
@@ -910,7 +911,7 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
               <img src="${qrUrl}" alt="QR Code" />
             </div>
             <div class="barcode-area">
-              ${order.tracking_number || 'No tracking #'}
+              ${tracking || 'No tracking #'}
             </div>
             <div class="order-info">
               Order #${order.id}
@@ -937,14 +938,26 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
       <div className="bg-card border border-border rounded-sm p-6 max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-serif mb-4">Print Shipping Label</h2>
 
-        <div className="mb-4 flex flex-col gap-2">
-          <label className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Shipping Address</label>
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 Main St, City, State 12345"
-            className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary h-20 resize-none font-sans"
-          />
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Tracking Number</label>
+            <input
+              type="text"
+              value={tracking}
+              onChange={(e) => setTracking(e.target.value)}
+              placeholder="e.g. 9400111899223851234567"
+              className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary font-sans"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Shipping Address</label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="123 Main St, City, State 12345"
+              className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary h-20 resize-none font-sans"
+            />
+          </div>
         </div>
 
         {/* Label Preview */}
@@ -975,7 +988,7 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
             </div>
 
             <div style={{ textAlign: 'center', border: '3px solid #000', padding: '12px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000', marginBottom: '10px', wordBreak: 'break-all', backgroundColor: '#fff' }}>
-              {order.tracking_number || 'NO TRACKING #'}
+              {tracking || 'NO TRACKING #'}
             </div>
 
             <div style={{ fontSize: '10px', textAlign: 'center', color: '#000' }}>
