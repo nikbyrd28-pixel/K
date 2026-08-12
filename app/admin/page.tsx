@@ -349,10 +349,18 @@ function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => 
     setLoading(true)
     setErr(null)
     try {
-      const [statsData, analyticsData] = await Promise.all([
-        call('stats'),
-        call('analytics').catch(() => null),
-      ])
+      const statsData = await call('stats').catch(e => {
+        console.error('Stats error:', e)
+        return null
+      })
+      const analyticsData = await call('analytics').catch(e => {
+        console.error('Analytics error:', e)
+        return null
+      })
+      if (!statsData) {
+        setErr('Could not load statistics')
+        return
+      }
       setStats(statsData)
       setAnalytics(analyticsData)
     } catch (e) {
@@ -366,6 +374,7 @@ function StatsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => 
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
   if (err) return <p className="text-sm text-destructive">{err}</p>
+  if (!stats) return <p className="text-sm text-muted-foreground">No data available. <button onClick={load} className="text-primary hover:underline">Try again</button></p>
 
   const cards = [
     { label: 'Total orders', value: stats!.totalOrders, sub: 'all time' },
