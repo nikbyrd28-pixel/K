@@ -851,67 +851,79 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
 
 function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [address, setAddress] = useState('')
+  const labelRef = useRef<HTMLDivElement>(null)
 
   const handlePrint = () => {
-    const printWindow = window.open('', '', 'width=800,height=600')
-    if (printWindow) {
-      printWindow.document.write(`
-          <html>
-            <head>
-              <title>Shipping Label - Order ${order.id}</title>
-              <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: Arial, sans-serif; padding: 0.5in; }
-                .label { width: 4in; height: 6in; border: 1px solid #999; padding: 0.25in; position: relative; }
-                .header { font-weight: bold; margin-bottom: 0.25in; border-bottom: 2px solid #000; }
-                .from-to { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25in; margin-bottom: 0.25in; }
-                .address-box { border: 1px dashed #666; padding: 0.15in; font-size: 11px; min-height: 1.5in; }
-                .barcode-area { text-align: center; margin-top: 0.25in; border: 1px dashed #999; padding: 0.2in; min-height: 0.8in; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; }
-                .order-info { font-size: 10px; margin-top: 0.25in; }
-              </style>
-            </head>
-            <body>
-              <div class="label">
-                <div class="header">SHIPPING LABEL</div>
-                <div class="from-to">
-                  <div>
-                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 0.1in;">FROM:</div>
-                    <div class="address-box">
-                      Hubs & Babydoll<br/>
-                      ${order.email || 'contact@hubsandbabydoll.com'}<br/>
-                      <br/>
-                    </div>
-                  </div>
-                  <div>
-                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 0.1in;">TO:</div>
-                    <div class="address-box">
-                      <strong>${order.name || 'Customer'}</strong><br/>
-                      ${address || '[Address not provided]'}<br/>
-                      ${order.phone || ''}<br/>
-                    </div>
-                  </div>
-                </div>
-                <div class="barcode-area">
-                  BARCODE / TRACKING: ${order.tracking_number || '[Tracking #]'}
-                </div>
-                <div class="order-info">
-                  <strong>Order #${order.id}</strong> | ${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Date'}
+    if (!labelRef.current) return
+
+    const printContent = labelRef.current.innerHTML
+    const originalContent = document.body.innerHTML
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8"/>
+          <title>Shipping Label - Order ${order.id}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            @page { size: 4in 6in; margin: 0; }
+            body { font-family: Arial, sans-serif; padding: 0.25in; background: white; }
+            .shipping-label { width: 100%; height: 100%; border: 1px solid #000; padding: 0.2in; }
+            .header { font-weight: bold; font-size: 14px; margin-bottom: 0.15in; border-bottom: 2px solid #000; text-align: center; }
+            .from-to { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2in; margin-bottom: 0.2in; }
+            .section { font-size: 10px; }
+            .section-title { font-weight: bold; font-size: 9px; margin-bottom: 0.05in; }
+            .address-box { border: 2px solid #000; padding: 0.1in; min-height: 1.2in; font-size: 11px; line-height: 1.3; }
+            .barcode-area { text-align: center; border: 2px solid #000; padding: 0.15in; min-height: 0.8in; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+            .order-info { font-size: 9px; margin-top: 0.15in; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="shipping-label">
+            <div class="header">SHIPPING LABEL</div>
+            <div class="from-to">
+              <div class="section">
+                <div class="section-title">FROM:</div>
+                <div class="address-box">
+                  <strong>Hubs & Babydoll</strong><br/>
+                  ${order.email || 'contact@hubsandbabydoll.com'}
                 </div>
               </div>
-            </body>
-          </html>
-        `)
-        printWindow.document.close()
-        setTimeout(() => {
-          printWindow.print()
-          printWindow.close()
-        }, 250)
+              <div class="section">
+                <div class="section-title">TO:</div>
+                <div class="address-box">
+                  <strong>${order.name || 'Customer'}</strong><br/>
+                  ${address || '(Address to be filled)'}
+                  ${order.phone ? '<br/>' + order.phone : ''}
+                </div>
+              </div>
+            </div>
+            <div class="barcode-area">
+              ${order.tracking_number || 'No tracking #'}
+            </div>
+            <div class="order-info">
+              Order #${order.id} | ${order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
+            </div>
+          </div>
+        </body>
+      </html>
+    `
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
+    if (printWindow) {
+      printWindow.document.write(printHTML)
+      printWindow.document.close()
+      printWindow.onload = () => {
+        printWindow.focus()
+        printWindow.print()
+        setTimeout(() => printWindow.close(), 500)
       }
+    }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-card border border-border rounded-sm p-6 max-w-md max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-card border border-border rounded-sm p-6 max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-serif mb-4">Print Shipping Label</h2>
 
         <div className="mb-4 flex flex-col gap-2">
@@ -919,19 +931,41 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter full shipping address (street, city, state, zip)"
-            className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary h-24 resize-none font-sans"
+            placeholder="123 Main St, City, State 12345"
+            className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary h-20 resize-none font-sans"
           />
-          <p className="text-xs text-muted-foreground">Leave blank to fill in manually before printing</p>
         </div>
 
-        <div className="mb-6 p-4 bg-muted/30 border border-border rounded-sm">
-          <div className="text-xs font-serif mb-3"><strong>Order {order.id}</strong></div>
-          <div className="text-xs space-y-1">
-            <div><strong>To:</strong> {order.name || 'Customer'}</div>
-            <div><strong>Email:</strong> {order.email || 'N/A'}</div>
-            <div><strong>Phone:</strong> {order.phone || 'N/A'}</div>
-            {order.tracking_number && <div><strong>Tracking:</strong> {order.tracking_number}</div>}
+        {/* Label Preview */}
+        <div className="mb-6 border-2 border-dashed border-border p-4 bg-muted/20 rounded-none" ref={labelRef}>
+          <div style={{ width: '400px', height: '600px', border: '1px solid #000', padding: '8px', fontFamily: 'Arial, sans-serif', fontSize: '12px', lineHeight: '1.4', backgroundColor: 'white' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '8px', borderBottom: '2px solid #000', textAlign: 'center' }}>SHIPPING LABEL</div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '10px', marginBottom: '4px' }}>FROM:</div>
+                <div style={{ border: '2px solid #000', padding: '8px', minHeight: '90px', fontSize: '11px' }}>
+                  <strong>Hubs & Babydoll</strong><br/>
+                  {order.email || 'contact@hubsandbabydoll.com'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '10px', marginBottom: '4px' }}>TO:</div>
+                <div style={{ border: '2px solid #000', padding: '8px', minHeight: '90px', fontSize: '11px' }}>
+                  <strong>{order.name || 'Customer'}</strong><br/>
+                  {address || '(Address to be filled in)'}
+                  {order.phone && <><br/>{order.phone}</>}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '12px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+              {order.tracking_number || 'NO TRACKING #'}
+            </div>
+
+            <div style={{ fontSize: '10px', marginTop: '12px', textAlign: 'center' }}>
+              Order #{order.id} | {order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
+            </div>
           </div>
         </div>
 
@@ -940,7 +974,7 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
             onClick={handlePrint}
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.15em] h-9"
           >
-            <Printer className="w-4 h-4" /> Print
+            <Printer className="w-4 h-4" /> Print to Printer
           </button>
           <button
             onClick={onClose}
