@@ -865,6 +865,11 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
 function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [address, setAddress] = useState('')
   const [tracking, setTracking] = useState(order.tracking_number || '')
+  const [senderEmail, setSenderEmail] = useState(() => {
+    if (typeof window === 'undefined') return 'contact@hubsandbabydoll.com'
+    return localStorage.getItem('hb_sender_email') || 'contact@hubsandbabydoll.com'
+  })
+  const [senderName, setSenderName] = useState('Hubs & Babydoll')
   const labelRef = useRef<HTMLDivElement>(null)
 
   const getQRCodeUrl = () => {
@@ -874,6 +879,11 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
 
   const handlePrint = () => {
     if (!labelRef.current) return
+
+    // Save sender email preference
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hb_sender_email', senderEmail)
+    }
 
     const qrUrl = getQRCodeUrl()
     const printContent = labelRef.current.innerHTML
@@ -907,8 +917,8 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
               <div class="section">
                 <div class="section-title">FROM:</div>
                 <div class="address-box">
-                  <strong>Hubs & Babydoll</strong><br/>
-                  ${order.email || 'contact@hubsandbabydoll.com'}
+                  <strong>${senderName}</strong><br/>
+                  ${senderEmail}
                 </div>
               </div>
               <div class="section">
@@ -952,6 +962,26 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
         <h2 className="text-lg font-serif mb-4">Print Shipping Label</h2>
 
         <div className="mb-4 flex flex-col gap-3">
+          <div className="p-3 bg-muted/30 border border-border rounded-sm">
+            <p className="text-xs uppercase tracking-[0.12em] text-primary font-medium mb-3">From (Return Address)</p>
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Company Name"
+                className="w-full bg-input border border-border rounded-none p-2 text-xs focus:outline-none focus:border-primary font-sans"
+              />
+              <input
+                type="email"
+                value={senderEmail}
+                onChange={(e) => setSenderEmail(e.target.value)}
+                placeholder="sender@email.com"
+                className="w-full bg-input border border-border rounded-none p-2 text-xs focus:outline-none focus:border-primary font-sans"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-2">
             <label className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Tracking Number</label>
             <input
@@ -982,8 +1012,8 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
               <div>
                 <div style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '6px', color: '#000' }}>FROM:</div>
                 <div style={{ border: '2px solid #000', padding: '10px', minHeight: '100px', fontSize: '12px', color: '#000', wordWrap: 'break-word' }}>
-                  <strong style={{ color: '#000' }}>Hubs & Babydoll</strong><br/>
-                  <span style={{ color: '#000' }}>{order.email || 'contact@hubsandbabydoll.com'}</span>
+                  <strong style={{ color: '#000' }}>{senderName}</strong><br/>
+                  <span style={{ color: '#000' }}>{senderEmail}</span>
                 </div>
               </div>
               <div>
