@@ -35,7 +35,7 @@ export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
   const [user, setUser] = useState<DashUser | null>(null)
-  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team'>('orders')
+  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team' | 'studio'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -137,6 +137,7 @@ export default function AdminPage() {
     { key: 'orders', label: 'Orders' },
     { key: 'customers', label: 'Customers' },
     { key: 'products', label: 'Products' },
+    ...(user?.role === 'owner' ? [{ key: 'studio' as const, label: 'Studio' }] : []),
     { key: 'rewards', label: 'Rewards' },
     { key: 'stats', label: 'Stats' },
     ...(user?.role === 'owner' ? [{ key: 'team' as const, label: 'Team' }] : []),
@@ -189,6 +190,7 @@ export default function AdminPage() {
       {tab === 'orders' && <OrdersTab call={call} onUser={rememberUser} />}
       {tab === 'customers' && <CustomersTab call={call} />}
       {tab === 'products' && <ProductsTab call={call} />}
+      {tab === 'studio' && <StudioTab call={call} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
       {tab === 'stats' && <StatsTab call={call} />}
       {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
@@ -1367,6 +1369,112 @@ type Code = {
   referrer_email: string | null
   note: string
   updated_by?: string
+}
+
+// ---------------------------------------------------------------------------
+//  STUDIO (Product Photography & AI Description)
+// ---------------------------------------------------------------------------
+function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [items, setItems] = useState<EditItem[] | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`${SUPA_URL}/rest/v1/hb_products?select=*`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+      })
+      const rows: ProductRow[] = res.ok ? await res.json() : []
+      const safe = Array.isArray(rows) ? rows : []
+      setItems(mergeCatalog(safe))
+    } catch {
+      setItems(mergeCatalog([]))
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const generateDescription = async (item: EditItem) => {
+    setGenerating(true)
+    setMsg(null)
+    try {
+      // Try to use Ollama at localhost:11434
+      const res = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'mistral',
+          prompt: `Write a compelling 2-sentence e-commerce product description for: "${item.name}". Focus on benefits and sensory appeal. Keep it under 100 words.`,
+          stream: false,
+        }),
+      })
+
+      if (!res.ok) {
+        setMsg('Ollama not running or error occurred')
+        return
+      }
+
+      const data = await res.json()
+      const description = data.response || ''
+
+      if (description) {
+        // Save to database
+        await call('product_update', {
+          handle: item.handle,
+          description: description.trim(),
+        })
+        setMsg('✓ Description generated and saved')
+        load()
+      }
+    } catch (e) {
+      setMsg('Could not connect to Ollama. Make sure it\'s running at localhost:11434')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-6 p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Product Studio</h3>
+        <p className="text-sm text-muted-foreground">Use Ollama AI to auto-generate product descriptions. Make sure Ollama is running locally.</p>
+      </div>
+
+      {msg && (
+        <p className={`text-sm mb-4 ${msg.startsWith('✓') ? 'text-primary' : 'text-amber-500'}`}>
+          {msg}
+        </p>
+      )}
+
+      <div className="grid gap-4">
+        {items?.map((item, i) => (
+          <div key={item.handle ?? i} className="border border-border rounded-sm p-4 bg-card">
+            <div className="flex gap-4 mb-3">
+              {item.image && (
+                <div className="w-20 h-20 bg-muted rounded-sm overflow-hidden flex-shrink-0">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h4 className="font-serif text-base mb-1">{item.name}</h4>
+                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
+                <button
+                  onClick={() => generateDescription(item)}
+                  disabled={generating}
+                  className="text-xs bg-primary/15 text-primary hover:bg-primary/25 px-3 py-1.5 rounded-none uppercase tracking-[0.12em] disabled:opacity-60"
+                >
+                  {generating ? 'Generating...' : 'AI Rewrite'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!items && <p className="text-muted-foreground">Loading products...</p>}
+      {items && items.length === 0 && <p className="text-muted-foreground">No products to review.</p>}
+    </div>
+  )
 }
 
 function RewardsTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
