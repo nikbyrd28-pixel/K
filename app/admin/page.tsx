@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   Loader2, Plus, Trash2, Eye, EyeOff, Check, LogOut, ImagePlus,
   RefreshCw, Package, Truck, CheckCircle2, BarChart3, AlertTriangle,
-  Users, Star, ShoppingBag, Mail, Camera, ExternalLink, MessageSquare, Send, Phone,
+  Users, Star, ShoppingBag, Mail, Camera, ExternalLink, MessageSquare, Send, Phone, Printer,
 } from 'lucide-react'
 import { mergeCatalog, type EffectiveItem, type ProductRow, type CatalogSize } from '@/lib/catalog'
 
@@ -688,6 +688,7 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
   const [subscribers, setSubscribers] = useState<Order[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [printingLabel, setPrintingLabel] = useState<Order | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -833,9 +834,124 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
               >
                 <Check className="w-3.5 h-3.5" /> Save
               </button>
+              <button
+                onClick={() => setPrintingLabel(o)}
+                className="inline-flex items-center gap-1.5 rounded-none bg-muted text-muted-foreground hover:bg-muted/80 text-[11px] uppercase tracking-[0.15em] h-9 px-4"
+              >
+                <Printer className="w-3.5 h-3.5" /> Print Label
+              </button>
             </div>
           </div>
         ))}
+      </div>
+      {printingLabel && <ShippingLabelModal order={printingLabel} onClose={() => setPrintingLabel(null)} />}
+    </div>
+  )
+}
+
+function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => void }) {
+  const [address, setAddress] = useState('')
+  const labelRef = useRef<HTMLDivElement>(null)
+
+  const handlePrint = () => {
+    if (labelRef.current) {
+      const printWindow = window.open('', '', 'width=800,height=600')
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Shipping Label - Order ${order.id}</title>
+              <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: Arial, sans-serif; padding: 0.5in; }
+                .label { width: 4in; height: 6in; border: 1px solid #999; padding: 0.25in; position: relative; }
+                .header { font-weight: bold; margin-bottom: 0.25in; border-bottom: 2px solid #000; }
+                .from-to { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25in; margin-bottom: 0.25in; }
+                .address-box { border: 1px dashed #666; padding: 0.15in; font-size: 11px; min-height: 1.5in; }
+                .barcode-area { text-align: center; margin-top: 0.25in; border: 1px dashed #999; padding: 0.2in; min-height: 0.8in; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; }
+                .order-info { font-size: 10px; margin-top: 0.25in; }
+              </style>
+            </head>
+            <body>
+              <div class="label">
+                <div class="header">SHIPPING LABEL</div>
+                <div class="from-to">
+                  <div>
+                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 0.1in;">FROM:</div>
+                    <div class="address-box">
+                      Hubs & Babydoll<br/>
+                      ${order.email || 'contact@hubsandbabydoll.com'}<br/>
+                      <br/>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 0.1in;">TO:</div>
+                    <div class="address-box">
+                      <strong>${order.name || 'Customer'}</strong><br/>
+                      ${address || '[Address not provided]'}<br/>
+                      ${order.phone || ''}<br/>
+                    </div>
+                  </div>
+                </div>
+                <div class="barcode-area">
+                  BARCODE / TRACKING: ${order.tracking_number || '[Tracking #]'}
+                </div>
+                <div class="order-info">
+                  <strong>Order #${order.id}</strong> | ${order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Date'}
+                </div>
+              </div>
+            </body>
+          </html>
+        `)
+        printWindow.document.close()
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.close()
+        }, 250)
+      }
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-card border border-border rounded-sm p-6 max-w-md max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-serif mb-4">Print Shipping Label</h2>
+
+        <div className="mb-4 flex flex-col gap-2">
+          <label className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Shipping Address</label>
+          <textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter full shipping address (street, city, state, zip)"
+            className="w-full bg-input border border-border rounded-none p-3 text-sm focus:outline-none focus:border-primary h-24 resize-none font-sans"
+          />
+          <p className="text-xs text-muted-foreground">Leave blank to fill in manually before printing</p>
+        </div>
+
+        <div className="mb-6 p-4 bg-muted/30 border border-border rounded-sm">
+          <div className="text-xs font-serif mb-3"><strong>Order {order.id}</strong></div>
+          <div className="text-xs space-y-1">
+            <div><strong>To:</strong> {order.name || 'Customer'}</div>
+            <div><strong>Email:</strong> {order.email || 'N/A'}</div>
+            <div><strong>Phone:</strong> {order.phone || 'N/A'}</div>
+            {order.tracking_number && <div><strong>Tracking:</strong> {order.tracking_number}</div>}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrint}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.15em] h-9"
+          >
+            <Printer className="w-4 h-4" /> Print
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-none bg-muted text-muted-foreground hover:bg-muted/80 text-xs uppercase tracking-[0.15em] h-9"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -1063,6 +1179,12 @@ function ProductsTab({ call }: { call: (a: string, e?: Record<string, unknown>) 
                   placeholder="Description"
                   rows={2}
                   className="bg-input border border-border rounded-none px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary resize-y"
+                />
+                <input
+                  value={it.shipping_timeframe || ''}
+                  onChange={(e) => update(idx, { shipping_timeframe: e.target.value || undefined })}
+                  placeholder="Shipping timeframe (e.g., 2-3 business days)"
+                  className="bg-input border border-border rounded-none px-3 h-10 text-sm text-foreground focus:outline-none focus:border-primary"
                 />
 
                 {/* Sizes + prices + stock */}

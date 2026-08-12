@@ -469,6 +469,9 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-snug">{item.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Qty {item.quantity}</p>
+                    {item.shipping_timeframe && (
+                      <p className="text-xs text-primary/70 mt-1">Ships in {item.shipping_timeframe}</p>
+                    )}
                   </div>
                   <p className="text-sm text-primary whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>

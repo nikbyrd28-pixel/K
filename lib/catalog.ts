@@ -45,6 +45,7 @@ export type CatalogItem = {
   image: string
   imageAlt: string
   sizes: CatalogSize[]
+  shipping_timeframe?: string
 }
 
 export const CATALOG: CatalogItem[] = [
@@ -231,9 +232,10 @@ export type ProductRow = {
   sizes: CatalogSize[]
   sort: number
   active: boolean
+  shipping_timeframe?: string
 }
 
-export type EffectiveItem = CatalogItem & { active: boolean; sort: number }
+export type EffectiveItem = CatalogItem & { active: boolean; sort: number; shipping_timeframe?: string }
 
 /** Layer the owner's saved edits (rows) on top of the built-in CATALOG. */
 export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
@@ -243,7 +245,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
   const base: EffectiveItem[] = CATALOG.map((item, i) => {
     seen.add(item.handle)
     const r = byHandle.get(item.handle)
-    if (!r) return { ...item, active: true, sort: i }
+    if (!r) return { ...item, active: true, sort: i, shipping_timeframe: item.shipping_timeframe || '2-3 business days' }
     return {
       handle: item.handle,
       name: r.name || item.name,
@@ -253,6 +255,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
       sizes: Array.isArray(r.sizes) && r.sizes.length ? r.sizes : item.sizes,
       active: r.active !== false,
       sort: Number.isFinite(r.sort) ? r.sort : i,
+      shipping_timeframe: r.shipping_timeframe || item.shipping_timeframe || '2-3 business days',
     }
   })
 
