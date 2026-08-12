@@ -8,29 +8,33 @@ import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
 import { ReferFriend } from '@/components/refer-friend'
 
+// Orders are captured into TB Command (the shared Supabase backend) so they
+// appear in the owner's dashboard. This anon key is a public, insert-only key.
 const SUPA_URL = 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co'
 const SUPA_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYmppcWR3emdramttcXlqc21jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzc1NTEsImV4cCI6MjA5OTk1MzU1MX0.Naocw-B0B6Z7CLg197yxLezd58a6f5XoMLEiea5b0Ro'
 const CLIENT = 'hubsandbabydoll'
 const OPTIN_FN = `${SUPA_URL}/functions/v1/hb-optin`
 
+// A2P-required disclosure — exact wording stored in DB for carrier audit trail
 const SMS_DISCLOSURE =
   'By providing your phone number and checking this box, you agree to receive recurring ' +
   'automated marketing text messages from Hubs & Babydoll at the number provided. ' +
   'Msg & data rates may apply. Consent is not a condition of purchase. ' +
   'Text STOP to cancel, HELP for help. Message frequency varies.'
 
+// Payment handles — fill these in to turn on one-tap payment at checkout.
+// (Leave blank and customers are told you'll send a payment request.)
 const PAY = {
-  cashApp: '',
-  venmo: '',
-  paypal: '',
+  cashApp: '', // your $Cashtag, without the $  e.g. 'HubsBabydoll'
+  venmo: '', // your Venmo username, without the @
+  paypal: '', // your PayPal.Me username
 }
 
 export default function CheckoutPage() {
   const { cart, subtotal, cartCount, clearCart } = useShoppingCart()
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
-  const [cardPaid, setCardPaid] = useState(false)
   const [paidTotal, setPaidTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -43,77 +47,20 @@ export default function CheckoutPage() {
   const [emailOptIn, setEmailOptIn] = useState(false)
   const [smsOptIn, setSmsOptIn] = useState(false)
 
+  // Reward / referral code
   const [code, setCode] = useState('')
   const [discount, setDiscount] = useState(0)
   const [codeLabel, setCodeLabel] = useState('')
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
-  // Shipping settings come from the backend so the owner can change them anytime
-  const [shipFee, setShipFee] = useState(0)
-  const [freeOver, setFreeOver] = useState(0)
-  useEffect(() => {
-    fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
-      method: 'POST',
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'config' }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (typeof d.shipping_fee === 'number') setShipFee(d.shipping_fee)
-        if (typeof d.free_shipping_over === 'number') setFreeOver(d.free_shipping_over)
-      })
-      .catch(() => {})
-  }, [])
-
-  const goodsTotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
-  const shipping =
-    form.method === 'Ship to me' && shipFee > 0 && !(freeOver > 0 && goodsTotal >= freeOver)
-      ? Math.round(shipFee * 100) / 100
-      : 0
-  const total = Math.round((goodsTotal + shipping) * 100) / 100
+  const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
+  // Payment amounts are scaled so the charged total matches the discounted total.
   const payItems = () => {
-    const factor = subtotal > 0 ? goodsTotal / subtotal : 1
-    const items = cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
-    if (shipping > 0) items.push({ name: 'Shipping', amount: shipping, quantity: 1 })
-    return items
+    const factor = subtotal > 0 ? total / subtotal : 1
+    return cart.map((i) => ({ name: i.title, amount: Math.round(i.price * factor * 100) / 100, quantity: i.quantity }))
   }
-
-  // Returning from Square hosted checkout (?paid=1)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (new URLSearchParams(window.location.search).get('paid') !== '1') return
-    const saved = parseFloat(localStorage.getItem('hb_paid_total') ?? '0')
-    localStorage.removeItem('hb_paid_total')
-    setPaidTotal(saved)
-    setCardPaid(true)
-    clearCart()
-    setDone(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Re-validate applied code when cart subtotal changes
-  useEffect(() => {
-    if (!appliedCode) return
-    fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
-      method: 'POST',
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'validate', code: appliedCode, subtotal }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.valid) {
-          setDiscount(0); setCode(''); setCodeLabel('')
-          setCodeMsg(data.message || 'Code no longer applies — check your cart.')
-        } else {
-          setDiscount(data.discount)
-          setCodeLabel(data.label || codeLabel)
-        }
-      })
-      .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtotal])
 
   const applyCode = async () => {
     const c = code.trim()
@@ -133,8 +80,9 @@ export default function CheckoutPage() {
         setCode(data.code || c.toUpperCase())
         setCodeMsg(null)
       } else {
-        setDiscount(0); setCodeLabel('')
-        setCodeMsg(data.message || 'That code is not valid.')
+        setDiscount(0)
+        setCodeLabel('')
+        setCodeMsg(data.message || 'That code isn’t valid.')
       }
     } catch {
       setCodeMsg('Could not check that code — please try again.')
@@ -145,6 +93,15 @@ export default function CheckoutPage() {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  // Returning from Stripe hosted checkout (success_url = /checkout?paid=1).
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('paid') === '1') {
+      clearCart()
+      setDone(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const validate = () => {
     if (cart.length === 0) return 'Your cart is empty.'
@@ -163,9 +120,7 @@ export default function CheckoutPage() {
         : form.method
     const message =
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
-      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\n` : '') +
-      (shipping > 0 ? `Shipping: $${shipping.toFixed(2)}\n` : form.method === 'Ship to me' ? 'Shipping: FREE\n' : '') +
-      `Total: $${total.toFixed(2)}\n` +
+      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\nTotal: $${total.toFixed(2)}\n` : '') +
       `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
       (isGift ? `🎁 GIFT${giftMessage ? ` — message: "${giftMessage}"` : ''}\n` : '') +
@@ -173,18 +128,25 @@ export default function CheckoutPage() {
     const res = await fetch(`${SUPA_URL}/rest/v1/client_leads`, {
       method: 'POST',
       headers: {
-        apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
-        'Content-Type': 'application/json', Prefer: 'return=minimal',
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
       },
       body: JSON.stringify({
-        client: CLIENT, kind: 'order',
-        name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim(),
+        client: CLIENT,
+        kind: 'order',
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
         service: `Order · ${cartCount} item${cartCount > 1 ? 's' : ''} · $${total.toFixed(2)}${appliedCode ? ` · ${appliedCode}` : ''} · ${payLabel}`,
-        pickup: ship, message,
+        pickup: ship,
+        message,
       }),
     })
     if (!res.ok) throw new Error('http ' + res.status)
 
+    // Count the code redemption (best-effort; never blocks the order).
     if (appliedCode) {
       fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
         method: 'POST',
@@ -193,6 +155,7 @@ export default function CheckoutPage() {
       }).catch(() => {})
     }
 
+    // Record marketing opt-in consent (fire-and-forget — never blocks the order)
     if (emailOptIn || smsOptIn) {
       fetch(OPTIN_FN, {
         method: 'POST',
@@ -208,19 +171,52 @@ export default function CheckoutPage() {
       }).catch(() => {})
     }
 
+    // Fire an email alert to the owner (turns on once RESEND_API_KEY is set;
+    // no-ops otherwise). Fire-and-forget — never blocks or fails the order.
     fetch(`${SUPA_URL}/functions/v1/hb-notify`, {
       method: 'POST',
       headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim(),
-        total: total.toFixed(2), method: form.method, ship,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        total: total.toFixed(2),
+        method: form.method,
+        ship,
         payment: payLabel + (appliedCode ? ` · code ${appliedCode}` : ''),
         items: cart.map((i) => ({ name: i.title, quantity: i.quantity, amount: (i.price * i.quantity).toFixed(2) })),
       }),
     }).catch(() => {})
   }
 
-  // Pay via Square hosted checkout page
+  // Pay now with a card via Stripe hosted checkout.
+  const payByCard = async () => {
+    setError(null)
+    const v = validate()
+    if (v) return setError(v)
+    setSubmitting(true)
+    try {
+      await recordOrder('Card (pending)')
+      const res = await fetch(`${SUPA_URL}/functions/v1/hb-checkout`, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          items: payItems(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start card checkout.')
+      window.location.href = data.url
+    } catch (e) {
+      setSubmitting(false)
+      setError(e instanceof Error ? e.message : 'Could not start card checkout.')
+    }
+  }
+
+  // Pay now with a card via Square hosted checkout.
   const payBySquare = async () => {
     setError(null)
     const v = validate()
@@ -232,29 +228,29 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name.trim(), email: form.email.trim(),
-          phone: form.phone.trim(), items: payItems(),
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          items: payItems(),
         }),
       })
       const data = await res.json()
-      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.')
-      // Save total so confirmation page can show the right amount after redirect
-      localStorage.setItem('hb_paid_total', total.toFixed(2))
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start Square checkout.')
       window.location.href = data.url
     } catch (e) {
       setSubmitting(false)
-      setError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setError(e instanceof Error ? e.message : 'Could not start Square checkout.')
     }
   }
 
-  // Place order and pay in person at pickup or delivery
+  // Place the order now and arrange payment after (tap-to-pay / invoice).
   const placeOrder = async () => {
     setError(null)
     const v = validate()
     if (v) return setError(v)
     setSubmitting(true)
     try {
-      await recordOrder('Pay in person')
+      await recordOrder('Pay on confirmation')
       setPaidTotal(total)
       clearCart()
       setDone(true)
@@ -272,16 +268,13 @@ export default function CheckoutPage() {
         <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 border border-primary flex items-center justify-center mb-8">
           <Check className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">
-          {cardPaid ? 'Payment received!' : 'Order received'}
-        </h1>
+        <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-          {cardPaid
-            ? `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your payment${paidTotal > 0 ? ` of $${paidTotal.toFixed(2)}` : ''} went through. We'll get your order handmade and on its way.`
-            : `Thank you${form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. You'll pay in person at pickup or delivery, and we'll get it handmade and on its way.`}
+          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your
+          payment below and we&apos;ll get it handmade and on its way.
         </p>
 
-        {!cardPaid && <PaymentBox total={paidTotal} />}
+        <PaymentBox total={paidTotal} />
 
         <ReferFriend defaultEmail={form.email} />
 
@@ -395,6 +388,7 @@ export default function CheckoutPage() {
               </div>
             </fieldset>
 
+            {/* Marketing opt-in — both unchecked by default, consent not required for purchase */}
             <div className="border border-border rounded-sm p-4 flex flex-col gap-3">
               <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Stay updated (optional)</p>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -435,23 +429,31 @@ export default function CheckoutPage() {
                 className="w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.2em] h-13 disabled:opacity-60"
               >
                 {submitting ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting checkout…</span>
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Checkout · ${total.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${total.toFixed(2)}</span>
                 )}
               </Button>
+              <button
+                type="button"
+                onClick={payByCard}
+                disabled={submitting}
+                className="w-full rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors disabled:opacity-60"
+              >
+                <span className="inline-flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card (Stripe)</span>
+              </button>
               <button
                 type="button"
                 onClick={placeOrder}
                 disabled={submitting}
                 className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
               >
-                Place order, pay in person
+                Place order, pay another way
               </button>
             </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
-              Card payments are handled on a secure Square page — your card never touches this site.
-              Prefer to pay in person? Place your order and pay at pickup or delivery.
+              Card payments are handled on a secure hosted page — your card never touches this site.
+              Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
             </p>
           </div>
 
@@ -467,11 +469,15 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-snug">{item.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Qty {item.quantity}</p>
+                    {item.shipping_timeframe && (
+                      <p className="text-xs text-primary/70 mt-1">Ships in {item.shipping_timeframe}</p>
+                    )}
                   </div>
                   <p className="text-sm text-primary whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>
+            {/* Reward / referral code */}
             <div className="border-t border-border mt-5 pt-5">
               {appliedCode ? (
                 <div className="flex items-center justify-between">
@@ -516,21 +522,6 @@ export default function CheckoutPage() {
                   <span>Discount ({codeLabel})</span>
                   <span>−${discount.toFixed(2)}</span>
                 </div>
-              )}
-              {form.method === 'Ship to me' && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  {shipping > 0 ? (
-                    <span>${shipping.toFixed(2)}</span>
-                  ) : (
-                    <span className="text-primary">Free</span>
-                  )}
-                </div>
-              )}
-              {form.method === 'Ship to me' && shipping > 0 && freeOver > 0 && goodsTotal < freeOver && (
-                <p className="text-[11px] text-muted-foreground">
-                  Free shipping on orders over ${freeOver.toFixed(0)} — you&apos;re ${(freeOver - goodsTotal).toFixed(2)} away.
-                </p>
               )}
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Estimated total</span>
@@ -606,7 +597,7 @@ function PaymentBox({ total }: { total: number }) {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          You&apos;ll pay in person at pickup or delivery — we&apos;ll confirm everything with you personally.
+          We&apos;ll send you a quick payment request to finish up — thank you for your patience.
         </p>
       )}
     </div>
