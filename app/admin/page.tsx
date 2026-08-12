@@ -853,9 +853,15 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
   const [address, setAddress] = useState('')
   const labelRef = useRef<HTMLDivElement>(null)
 
+  const getQRCodeUrl = () => {
+    const qrData = order.tracking_number || `Order-${order.id}`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`
+  }
+
   const handlePrint = () => {
     if (!labelRef.current) return
 
+    const qrUrl = getQRCodeUrl()
     const printContent = labelRef.current.innerHTML
     const originalContent = document.body.innerHTML
     const printHTML = `
@@ -874,8 +880,10 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
             .section { font-size: 10px; }
             .section-title { font-weight: bold; font-size: 9px; margin-bottom: 0.05in; }
             .address-box { border: 2px solid #000; padding: 0.1in; min-height: 1.2in; font-size: 11px; line-height: 1.3; }
-            .barcode-area { text-align: center; border: 2px solid #000; padding: 0.15in; min-height: 0.8in; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-            .order-info { font-size: 9px; margin-top: 0.15in; text-align: center; }
+            .qr-section { text-align: center; margin-bottom: 0.15in; }
+            .qr-section img { max-width: 1in; height: auto; }
+            .barcode-area { text-align: center; border: 2px solid #000; padding: 0.15in; min-height: 0.6in; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; word-break: break-all; }
+            .order-info { font-size: 8px; margin-top: 0.1in; text-align: center; }
           </style>
         </head>
         <body>
@@ -898,11 +906,14 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
                 </div>
               </div>
             </div>
+            <div class="qr-section">
+              <img src="${qrUrl}" alt="QR Code" />
+            </div>
             <div class="barcode-area">
               ${order.tracking_number || 'No tracking #'}
             </div>
             <div class="order-info">
-              Order #${order.id} | ${order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
+              Order #${order.id}
             </div>
           </div>
         </body>
@@ -959,12 +970,16 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '14px', minHeight: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000', marginBottom: '10px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+              <img src={getQRCodeUrl()} alt="QR Code" style={{ width: '100px', height: '100px' }} />
+            </div>
+
+            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px', color: '#000', marginBottom: '10px', wordBreak: 'break-all' }}>
               {order.tracking_number || 'NO TRACKING #'}
             </div>
 
-            <div style={{ fontSize: '11px', textAlign: 'center', color: '#000' }}>
-              <strong>Order #{order.id}</strong> | {order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
+            <div style={{ fontSize: '10px', textAlign: 'center', color: '#000' }}>
+              <strong>Order #{order.id}</strong>
             </div>
           </div>
         </div>
