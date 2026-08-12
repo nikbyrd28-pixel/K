@@ -1376,8 +1376,10 @@ type Code = {
 // ---------------------------------------------------------------------------
 function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
   const [items, setItems] = useState<EditItem[] | null>(null)
+  const [selectedItem, setSelectedItem] = useState<EditItem | null>(null)
   const [generating, setGenerating] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
+  const [contentType, setContentType] = useState<'description' | 'social' | 'email'>('description')
 
   const load = useCallback(async () => {
     try {
@@ -1394,85 +1396,144 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
 
   useEffect(() => { load() }, [load])
 
-  const generateDescription = async (item: EditItem) => {
+  const brandVoicePrompt = `You are a luxury body care brand copywriter. Your voice is: warm, intimate, poetic, and genuinely caring. Never use corporate speak or hard sell tactics. Focus on how the product makes people FEEL, not just features. Use sensory language (feel, glow, nourish, warmth). Target audience: people who give everything to others and deserve care too.`
+
+  const generateContent = async (item: EditItem, type: 'description' | 'social' | 'email') => {
     setGenerating(true)
     setMsg(null)
     try {
-      // Try to use Ollama at localhost:11434
+      let prompt = brandVoicePrompt + '\n\n'
+
+      if (type === 'description') {
+        prompt += `Write a compelling 2-3 sentence product description for "${item.name}". Focus on benefits and sensory appeal. Keep under 100 words. Emphasize that this product is "made to be felt" and handcrafted in small batches.`
+      } else if (type === 'social') {
+        prompt += `Write a captivating Instagram caption for "${item.name}" (max 150 chars). Use sensory language. No hashtags. Start with an emotional hook about self-care.`
+      } else if (type === 'email') {
+        prompt += `Write a short, warm email subject line and 2-sentence preview for promoting "${item.name}". Focus on the gift-giving angle and self-care message. Keep it under 50 words total.`
+      }
+
       const res = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'mistral',
-          prompt: `Write a compelling 2-sentence e-commerce product description for: "${item.name}". Focus on benefits and sensory appeal. Keep it under 100 words.`,
+          prompt,
           stream: false,
+          temperature: 0.7,
         }),
       })
 
       if (!res.ok) {
-        setMsg('Ollama not running or error occurred')
+        setMsg('Ollama connection failed. Make sure it\'s running at localhost:11434')
         return
       }
 
       const data = await res.json()
-      const description = data.response || ''
+      const generated = data.response?.trim() || ''
 
-      if (description) {
-        // Save to database
+      if (!generated) {
+        setMsg('No content generated. Try again.')
+        return
+      }
+
+      if (type === 'description') {
         await call('product_update', {
           handle: item.handle,
-          description: description.trim(),
+          description: generated,
         })
-        setMsg('✓ Description generated and saved')
-        load()
+        setMsg('✓ Description updated')
+      } else if (type === 'social') {
+        setMsg(`Generated: "${generated}"`)
+      } else if (type === 'email') {
+        setMsg(`Generated: "${generated}"`)
       }
+
+      load()
     } catch (e) {
-      setMsg('Could not connect to Ollama. Make sure it\'s running at localhost:11434')
+      setMsg(`Error: ${e instanceof Error ? e.message : 'Unknown error'}`)
     } finally {
       setGenerating(false)
     }
   }
 
   return (
-    <div>
-      <div className="mb-6 p-4 bg-muted/30 border border-border rounded-sm">
-        <h3 className="font-serif text-lg mb-2">Product Studio</h3>
-        <p className="text-sm text-muted-foreground">Use Ollama AI to auto-generate product descriptions. Make sure Ollama is running locally.</p>
+    <div className="flex flex-col gap-6">
+      <div className="p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Marketing Studio</h3>
+        <p className="text-sm text-muted-foreground">Generate marketing copy using Ollama AI with the Hubs & Babydoll brand voice. Requires Ollama running at localhost:11434.</p>
       </div>
 
       {msg && (
-        <p className={`text-sm mb-4 ${msg.startsWith('✓') ? 'text-primary' : 'text-amber-500'}`}>
+        <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : msg.includes('Generated') ? 'bg-blue-500/15 text-blue-700' : 'bg-amber-500/15 text-amber-700'}`}>
           {msg}
-        </p>
+        </div>
       )}
 
-      <div className="grid gap-4">
-        {items?.map((item, i) => (
-          <div key={item.handle ?? i} className="border border-border rounded-sm p-4 bg-card">
-            <div className="flex gap-4 mb-3">
-              {item.image && (
-                <div className="w-20 h-20 bg-muted rounded-sm overflow-hidden flex-shrink-0">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <h4 className="text-sm font-medium mb-3 uppercase tracking-[0.1em]">Products</h4>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {items?.map((item, i) => (
+              <button
+                key={item.handle ?? i}
+                onClick={() => setSelectedItem(item)}
+                className={`w-full text-left text-xs p-2 border rounded-sm transition ${selectedItem?.handle === item.handle ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+          {!items && <p className="text-xs text-muted-foreground">Loading...</p>}
+          {items && items.length === 0 && <p className="text-xs text-muted-foreground">No products.</p>}
+        </div>
+
+        <div className="lg:col-span-2">
+          {selectedItem ? (
+            <div className="space-y-4">
+              <div className="flex gap-4 p-4 bg-card border border-border rounded-sm">
+                {selectedItem.image && (
+                  <div className="w-24 h-24 bg-muted rounded-sm overflow-hidden flex-shrink-0">
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h4 className="font-serif text-lg mb-1">{selectedItem.name}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{selectedItem.description}</p>
                 </div>
-              )}
-              <div className="flex-1">
-                <h4 className="font-serif text-base mb-1">{item.name}</h4>
-                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
-                <button
-                  onClick={() => generateDescription(item)}
-                  disabled={generating}
-                  className="text-xs bg-primary/15 text-primary hover:bg-primary/25 px-3 py-1.5 rounded-none uppercase tracking-[0.12em] disabled:opacity-60"
-                >
-                  {generating ? 'Generating...' : 'AI Rewrite'}
-                </button>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.1em] font-medium">Generate:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['description', 'social', 'email'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => {
+                        setContentType(t)
+                        generateContent(selectedItem, t)
+                      }}
+                      disabled={generating}
+                      className={`text-xs py-2 px-3 rounded-none border transition uppercase tracking-[0.12em] ${contentType === t ? 'border-primary bg-primary/15 text-primary' : 'border-border hover:border-primary/50'} disabled:opacity-50`}
+                    >
+                      {generating && contentType === t ? (
+                        <span className="flex items-center justify-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Generating
+                        </span>
+                      ) : (
+                        <span>{t === 'description' ? 'Product Copy' : t === 'social' ? 'Social Post' : 'Email'}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div className="flex items-center justify-center h-48 bg-muted/20 rounded-sm border border-border">
+              <p className="text-muted-foreground text-sm">Select a product to generate content</p>
+            </div>
+          )}
+        </div>
       </div>
-
-      {!items && <p className="text-muted-foreground">Loading products...</p>}
-      {items && items.length === 0 && <p className="text-muted-foreground">No products to review.</p>}
     </div>
   )
 }
