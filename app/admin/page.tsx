@@ -1506,7 +1506,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
   const [selectedItem, setSelectedItem] = useState<EditItem | null>(null)
   const [generating, setGenerating] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
-  const [contentType, setContentType] = useState<'description' | 'social' | 'email' | 'video'>('description')
+  const [contentType, setContentType] = useState<'social' | 'email' | 'video'>('social')
 
   const load = useCallback(async () => {
     try {
@@ -1636,11 +1636,11 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.1em] font-medium">Generate:</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['description', 'social', 'email', 'video'] as const).map((t) => (
+                  {(['social', 'email', 'video'] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => {
-                        setContentType(t)
+                        setContentType(t as 'social' | 'email' | 'video')
                         generateContent(selectedItem, t)
                       }}
                       disabled={generating}
@@ -1651,7 +1651,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
                           <Loader2 className="w-3 h-3 animate-spin" /> Generating
                         </span>
                       ) : (
-                        <span>{t === 'description' ? 'Product Copy' : t === 'social' ? 'Social Post' : t === 'email' ? 'Email' : 'Video Script'}</span>
+                        <span>{t === 'social' ? 'Social Post' : t === 'email' ? 'Email' : 'Video Script'}</span>
                       )}
                     </button>
                   ))}
