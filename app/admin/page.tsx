@@ -29,7 +29,45 @@ type Order = {
   tracking_number?: string
 }
 
-type DashUser = { name: string; role: string }
+type DashUser = {
+  name: string
+  role: 'owner' | 'script_writer' | 'video_editor' | 'distributor' | 'analyst'
+  email?: string
+}
+
+type RolePermissions = {
+  name: string
+  description: string
+  canAccess: ('orders' | 'customers' | 'products' | 'studio' | 'scripts' | 'videos' | 'distribute' | 'rewards' | 'stats' | 'team')[]
+}
+
+const ROLE_PERMISSIONS: Record<DashUser['role'], RolePermissions> = {
+  owner: {
+    name: 'Owner',
+    description: 'Full access to all features',
+    canAccess: ['orders', 'customers', 'products', 'studio', 'scripts', 'videos', 'distribute', 'rewards', 'stats', 'team'],
+  },
+  script_writer: {
+    name: 'Script Writer',
+    description: 'Create and manage video scripts',
+    canAccess: ['studio', 'scripts', 'products'],
+  },
+  video_editor: {
+    name: 'Video Editor',
+    description: 'Edit videos and manage uploads',
+    canAccess: ['scripts', 'videos', 'products'],
+  },
+  distributor: {
+    name: 'Distributor',
+    description: 'Post videos to platforms and track analytics',
+    canAccess: ['videos', 'distribute', 'stats'],
+  },
+  analyst: {
+    name: 'Analyst',
+    description: 'View analytics and reports only',
+    canAccess: ['stats', 'orders'],
+  },
+}
 
 export default function AdminPage() {
   const [pw, setPw] = useState('')
@@ -51,6 +89,16 @@ export default function AdminPage() {
       try { setUser(JSON.parse(savedUser)) } catch {}
     }
   }, [])
+
+  useEffect(() => {
+    if (!authed || !user) return
+    const userRole = user.role || 'owner'
+    const userPermissions = ROLE_PERMISSIONS[userRole]?.canAccess || []
+    if (!userPermissions.includes(tab)) {
+      const firstAllowedTab = userPermissions[0]
+      if (firstAllowedTab) setTab(firstAllowedTab as typeof tab)
+    }
+  }, [authed, user])
 
   const rememberUser = (u: DashUser | null) => {
     setUser(u)
@@ -133,20 +181,23 @@ export default function AdminPage() {
     )
   }
 
-  const tabs: { key: typeof tab; label: string }[] = [
+  const userRole = user?.role || 'owner'
+  const userPermissions = ROLE_PERMISSIONS[userRole]?.canAccess || []
+
+  const allTabs: { key: typeof tab; label: string }[] = [
     { key: 'orders', label: 'Orders' },
     { key: 'customers', label: 'Customers' },
     { key: 'products', label: 'Products' },
-    ...(user?.role === 'owner' ? [
-      { key: 'studio' as const, label: 'Studio' },
-      { key: 'scripts' as const, label: 'Scripts' },
-      { key: 'videos' as const, label: 'Videos' },
-      { key: 'distribute' as const, label: 'Distribute' },
-    ] : []),
+    { key: 'studio', label: 'Studio' },
+    { key: 'scripts', label: 'Scripts' },
+    { key: 'videos', label: 'Videos' },
+    { key: 'distribute', label: 'Distribute' },
     { key: 'rewards', label: 'Rewards' },
     { key: 'stats', label: 'Stats' },
-    ...(user?.role === 'owner' ? [{ key: 'team' as const, label: 'Team' }] : []),
+    { key: 'team', label: 'Team' },
   ]
+
+  const tabs = allTabs.filter(t => userPermissions.includes(t.key))
 
   return (
     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
@@ -1761,7 +1812,7 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
   const [admins, setAdmins] = useState<Admin[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
-  const [draft, setDraft] = useState({ name: '', password: '', role: 'helper' as 'helper' | 'owner' })
+  const [draft, setDraft] = useState({ name: '', password: '', role: 'script_writer' as DashUser['role'] })
 
   const load = useCallback(async () => {
     setErr(null)
@@ -1783,11 +1834,21 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
     setErr(null)
     try {
       await call('admin_save', { admin: { name: draft.name, password: draft.password, role: draft.role } })
-      setDraft({ name: '', password: '', role: 'helper' })
-      flash('Login added ✓')
+      setDraft({ name: '', password: '', role: 'script_writer' })
+      flash('Team member added ✓')
       load()
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Could not add login.')
+      setErr(e instanceof Error ? e.message : 'Could not add team member.')
+    }
+  }
+
+  const updateRole = async (a: Admin, newRole: DashUser['role']) => {
+    try {
+      await call('admin_save', { admin: { id: a.id, name: a.name, role: newRole, password: a.password } })
+      flash(`Role updated for ${a.name}`)
+      load()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not update role.')
     }
   }
 
@@ -1816,12 +1877,13 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
 
   return (
     <div className="flex flex-col gap-8">
-      <p className="text-sm text-muted-foreground -mt-2">
-        Each person gets their own password, so edits are labeled with who made them.
-      </p>
+      <div className="p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Team Management</h3>
+        <p className="text-sm text-muted-foreground">Each team member gets their own role and can only access the features they need.</p>
+      </div>
 
       <div className="border border-border rounded-sm p-5 bg-card">
-        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Add a login</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-primary mb-4">Add team member</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             value={draft.name}
@@ -1832,43 +1894,98 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
           <input
             value={draft.password}
             onChange={(e) => setDraft({ ...draft, password: e.target.value })}
-            placeholder="Password"
+            placeholder="Password (min 4 chars)"
+            type="password"
             className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
           />
           <select
             value={draft.role}
-            onChange={(e) => setDraft({ ...draft, role: e.target.value as 'helper' | 'owner' })}
+            onChange={(e) => setDraft({ ...draft, role: e.target.value as DashUser['role'] })}
             className="bg-input border border-border rounded-none px-3 h-11 text-sm focus:outline-none focus:border-primary"
           >
-            <option value="helper">Helper</option>
-            <option value="owner">Owner (full access)</option>
+            {Object.entries(ROLE_PERMISSIONS).filter(([k]) => k !== 'owner').map(([key, val]) => (
+              <option key={key} value={key}>{val.name}</option>
+            ))}
           </select>
         </div>
         <div className="flex items-center gap-3 mt-3 flex-wrap">
           <button onClick={add} className="inline-flex items-center gap-2 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs uppercase tracking-[0.18em] h-11 px-5">
-            <Plus className="w-4 h-4" /> Add login
+            <Plus className="w-4 h-4" /> Add member
           </button>
           {okMsg && <span className="text-sm text-primary">{okMsg}</span>}
           {err && <span className="text-sm text-destructive">{err}</span>}
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {admins.map((a) => (
-          <div key={a.id} className={`flex items-center gap-3 border rounded-sm px-4 py-3 flex-wrap ${a.active ? 'border-border bg-card' : 'border-border/50 opacity-60'}`}>
-            <span className="font-serif text-lg">{a.name}</span>
-            <span className="text-[11px] uppercase tracking-[0.15em] text-primary border border-primary/30 px-2 py-0.5">{a.role}</span>
-            {a.name === meName && <span className="text-xs text-muted-foreground">(you)</span>}
-            <div className="ml-auto flex items-center gap-3">
-              <button onClick={() => resetPw(a)} className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary">
-                Reset password
-              </button>
-              <button onClick={() => del(a)} className="text-muted-foreground hover:text-destructive" aria-label={`Remove ${a.name}`}>
-                <Trash2 className="w-4 h-4" />
-              </button>
+      <div className="space-y-3">
+        <h4 className="font-serif text-base">Team members</h4>
+        {admins.map((a) => {
+          const rolePerm = ROLE_PERMISSIONS[a.role as DashUser['role']]
+          return (
+            <div key={a.id} className={`border rounded-sm p-4 ${a.active ? 'border-border bg-card' : 'border-border/50 opacity-60'}`}>
+              <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-serif text-lg">{a.name}</span>
+                    {a.name === meName && <span className="text-xs text-primary">(you)</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{rolePerm?.description}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={a.role || 'script_writer'}
+                    onChange={(e) => updateRole(a, e.target.value as DashUser['role'])}
+                    disabled={a.name === meName}
+                    className="text-xs bg-input border border-border rounded-none px-2 py-1 focus:outline-none focus:border-primary disabled:opacity-50"
+                  >
+                    {Object.entries(ROLE_PERMISSIONS).filter(([k]) => k !== 'owner').map(([key, val]) => (
+                      <option key={key} value={key}>{val.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-3 p-2 bg-muted/20 rounded-sm">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-2">Can access:</p>
+                <div className="flex flex-wrap gap-1">
+                  {rolePerm?.canAccess.map(tab => (
+                    <span key={tab} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-none">{tab}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={() => resetPw(a)}
+                  disabled={a.name === meName}
+                  className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary disabled:opacity-50"
+                >
+                  Reset password
+                </button>
+                <button
+                  onClick={() => del(a)}
+                  disabled={a.name === meName}
+                  className="text-muted-foreground hover:text-destructive disabled:opacity-50"
+                  aria-label={`Remove ${a.name}`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
+      </div>
+
+      <div className="p-4 bg-primary/5 border border-primary/20 rounded-sm">
+        <p className="text-xs uppercase tracking-[0.1em] text-primary font-medium mb-3">Role reference</p>
+        <div className="space-y-2">
+          {Object.entries(ROLE_PERMISSIONS).map(([key, role]) => (
+            <div key={key} className="text-xs">
+              <span className="font-medium text-foreground">{role.name}:</span>
+              <span className="text-muted-foreground ml-2">{role.description}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
