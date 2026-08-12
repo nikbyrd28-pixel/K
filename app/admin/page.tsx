@@ -35,7 +35,7 @@ export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
   const [user, setUser] = useState<DashUser | null>(null)
-  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team' | 'studio'>('orders')
+  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team' | 'studio' | 'scripts' | 'videos' | 'distribute'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -137,7 +137,12 @@ export default function AdminPage() {
     { key: 'orders', label: 'Orders' },
     { key: 'customers', label: 'Customers' },
     { key: 'products', label: 'Products' },
-    ...(user?.role === 'owner' ? [{ key: 'studio' as const, label: 'Studio' }] : []),
+    ...(user?.role === 'owner' ? [
+      { key: 'studio' as const, label: 'Studio' },
+      { key: 'scripts' as const, label: 'Scripts' },
+      { key: 'videos' as const, label: 'Videos' },
+      { key: 'distribute' as const, label: 'Distribute' },
+    ] : []),
     { key: 'rewards', label: 'Rewards' },
     { key: 'stats', label: 'Stats' },
     ...(user?.role === 'owner' ? [{ key: 'team' as const, label: 'Team' }] : []),
@@ -191,6 +196,9 @@ export default function AdminPage() {
       {tab === 'customers' && <CustomersTab call={call} />}
       {tab === 'products' && <ProductsTab call={call} />}
       {tab === 'studio' && <StudioTab call={call} />}
+      {tab === 'scripts' && <ScriptsPortal call={call} />}
+      {tab === 'videos' && <VideosPortal call={call} />}
+      {tab === 'distribute' && <DistributePortal call={call} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
       {tab === 'stats' && <StatsTab call={call} />}
       {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
@@ -1831,6 +1839,305 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+function ScriptsPortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [scripts, setScripts] = useState<any[]>([])
+  const [newScript, setNewScript] = useState({ title: '', product: '', content: '', status: 'draft' })
+  const [msg, setMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('hb_scripts')
+    if (saved) setScripts(JSON.parse(saved))
+  }, [])
+
+  const save = async () => {
+    if (!newScript.title.trim() || !newScript.content.trim()) {
+      setMsg('Title and content required')
+      return
+    }
+    const updated = [...scripts, { ...newScript, id: Date.now(), created: new Date().toISOString() }]
+    setScripts(updated)
+    localStorage.setItem('hb_scripts', JSON.stringify(updated))
+    setMsg('✓ Script saved')
+    setNewScript({ title: '', product: '', content: '', status: 'draft' })
+    setTimeout(() => setMsg(null), 3000)
+  }
+
+  const updateStatus = (id: number, status: string) => {
+    const updated = scripts.map(s => s.id === id ? { ...s, status } : s)
+    setScripts(updated)
+    localStorage.setItem('hb_scripts', JSON.stringify(updated))
+  }
+
+  const deleteScript = (id: number) => {
+    const updated = scripts.filter(s => s.id !== id)
+    setScripts(updated)
+    localStorage.setItem('hb_scripts', JSON.stringify(updated))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Scripts Portal</h3>
+        <p className="text-sm text-muted-foreground">Scripts are stored locally. Create here, then send to video editor. Status: Draft → In Progress → Ready for Video</p>
+      </div>
+
+      {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+          <h4 className="font-serif text-base mb-4">New Script</h4>
+          <div className="space-y-3">
+            <input type="text" placeholder="Script Title" value={newScript.title} onChange={(e) => setNewScript({ ...newScript, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+            <input type="text" placeholder="Product (optional)" value={newScript.product} onChange={(e) => setNewScript({ ...newScript, product: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+            <textarea placeholder="Script content..." value={newScript.content} onChange={(e) => setNewScript({ ...newScript, content: e.target.value })} rows={6} className="w-full bg-input border border-border rounded-none px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none" />
+            <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Save Script</button>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <h4 className="font-serif text-base mb-4">Scripts Library</h4>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {scripts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No scripts yet. Create one to get started.</p>
+            ) : (
+              scripts.map(s => (
+                <div key={s.id} className="border border-border rounded-sm p-3 bg-card">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h5 className="font-serif text-sm mb-1">{s.title}</h5>
+                      {s.product && <p className="text-xs text-muted-foreground mb-2">Product: {s.product}</p>}
+                    </div>
+                    <select value={s.status} onChange={(e) => updateStatus(s.id, e.target.value)} className="text-xs bg-input border border-border rounded-none px-2 py-1 focus:outline-none focus:border-primary">
+                      <option value="draft">Draft</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="ready">Ready</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-2 line-clamp-2">{s.content}</p>
+                  <button onClick={() => deleteScript(s.id)} className="text-xs text-destructive hover:text-destructive/70">Remove</button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VideosPortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [videos, setVideos] = useState<any[]>([])
+  const [upload, setUpload] = useState({ title: '', script_id: '', file: null as File | null, status: 'draft' })
+  const [msg, setMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('hb_videos')
+    if (saved) setVideos(JSON.parse(saved))
+  }, [])
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpload({ ...upload, file: e.target.files?.[0] || null })
+  }
+
+  const saveVideo = async () => {
+    if (!upload.title.trim() || !upload.file) {
+      setMsg('Title and video file required')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const updated = [...videos, {
+        ...upload,
+        id: Date.now(),
+        created: new Date().toISOString(),
+        fileSize: upload.file?.size,
+        fileName: upload.file?.name,
+      }]
+      setVideos(updated)
+      localStorage.setItem('hb_videos', JSON.stringify(updated))
+      setMsg('✓ Video uploaded')
+      setUpload({ title: '', script_id: '', file: null, status: 'draft' })
+      setTimeout(() => setMsg(null), 3000)
+    }
+    reader.readAsDataURL(upload.file)
+  }
+
+  const updateStatus = (id: number, status: string) => {
+    const updated = videos.map(v => v.id === id ? { ...v, status } : v)
+    setVideos(updated)
+    localStorage.setItem('hb_videos', JSON.stringify(updated))
+  }
+
+  const deleteVideo = (id: number) => {
+    const updated = videos.filter(v => v.id !== id)
+    setVideos(updated)
+    localStorage.setItem('hb_videos', JSON.stringify(updated))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Videos Portal</h3>
+        <p className="text-sm text-muted-foreground">Upload finished videos here. Status: Draft → Reviewing → Ready to Ship → Posted</p>
+      </div>
+
+      {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+          <h4 className="font-serif text-base mb-4">Upload Video</h4>
+          <div className="space-y-3">
+            <input type="text" placeholder="Video Title" value={upload.title} onChange={(e) => setUpload({ ...upload, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+            <div className="border-2 border-dashed border-border rounded-sm p-4 text-center cursor-pointer hover:border-primary transition">
+              <input type="file" accept="video/*" onChange={handleFileChange} className="hidden" id="videoInput" />
+              <label htmlFor="videoInput" className="cursor-pointer block">
+                {upload.file ? (
+                  <span className="text-xs text-primary">{upload.file.name}</span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Click to upload video</span>
+                )}
+              </label>
+            </div>
+            <input type="text" placeholder="Script ID (optional)" value={upload.script_id} onChange={(e) => setUpload({ ...upload, script_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+            <button onClick={saveVideo} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Upload Video</button>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <h4 className="font-serif text-base mb-4">Videos Library</h4>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {videos.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No videos uploaded yet.</p>
+            ) : (
+              videos.map(v => (
+                <div key={v.id} className="border border-border rounded-sm p-3 bg-card">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h5 className="font-serif text-sm mb-1">{v.title}</h5>
+                      <p className="text-xs text-muted-foreground">{v.fileName} · {Math.round(v.fileSize / 1024 / 1024 * 100) / 100}MB</p>
+                    </div>
+                    <select value={v.status} onChange={(e) => updateStatus(v.id, e.target.value)} className="text-xs bg-input border border-border rounded-none px-2 py-1 focus:outline-none focus:border-primary">
+                      <option value="draft">Draft</option>
+                      <option value="reviewing">Reviewing</option>
+                      <option value="ready">Ready</option>
+                      <option value="posted">Posted</option>
+                    </select>
+                  </div>
+                  <button onClick={() => deleteVideo(v.id)} className="text-xs text-destructive hover:text-destructive/70">Remove</button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DistributePortal({ call }: { call: (a: string, e?: Record<string, unknown>) => Promise<any> }) {
+  const [distributions, setDistributions] = useState<any[]>([])
+  const [newDistro, setNewDistro] = useState({ video_id: '', platforms: [] as string[], links: { tiktok: '', instagram: '', youtube: '' } })
+  const [msg, setMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('hb_distributions')
+    if (saved) setDistributions(JSON.parse(saved))
+  }, [])
+
+  const platforms = ['TikTok', 'Instagram', 'YouTube', 'Twitter', 'Threads']
+
+  const save = () => {
+    if (!newDistro.video_id.trim()) {
+      setMsg('Video ID required')
+      return
+    }
+    const updated = [...distributions, { ...newDistro, id: Date.now(), posted: new Date().toISOString() }]
+    setDistributions(updated)
+    localStorage.setItem('hb_distributions', JSON.stringify(updated))
+    setMsg('✓ Distribution logged')
+    setNewDistro({ video_id: '', platforms: [], links: { tiktok: '', instagram: '', youtube: '' } })
+    setTimeout(() => setMsg(null), 3000)
+  }
+
+  const togglePlatform = (platform: string) => {
+    setNewDistro({
+      ...newDistro,
+      platforms: newDistro.platforms.includes(platform)
+        ? newDistro.platforms.filter(p => p !== platform)
+        : [...newDistro.platforms, platform]
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="p-4 bg-muted/30 border border-border rounded-sm">
+        <h3 className="font-serif text-lg mb-2">Distribution & Analytics</h3>
+        <p className="text-sm text-muted-foreground">Track which videos went to which platforms. Store post links for performance monitoring.</p>
+      </div>
+
+      {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+          <h4 className="font-serif text-base mb-4">Log Distribution</h4>
+          <div className="space-y-4">
+            <input type="text" placeholder="Video ID" value={newDistro.video_id} onChange={(e) => setNewDistro({ ...newDistro, video_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+
+            <div>
+              <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platforms:</p>
+              <div className="space-y-2">
+                {platforms.map(p => (
+                  <label key={p} className="flex items-center gap-2 text-xs cursor-pointer">
+                    <input type="checkbox" checked={newDistro.platforms.includes(p)} onChange={() => togglePlatform(p)} className="rounded" />
+                    {p}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platform Links:</p>
+              <input type="url" placeholder="TikTok link" value={newDistro.links.tiktok} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, tiktok: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
+              <input type="url" placeholder="Instagram link" value={newDistro.links.instagram} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, instagram: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
+              <input type="url" placeholder="YouTube link" value={newDistro.links.youtube} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, youtube: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary" />
+            </div>
+
+            <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Log Distribution</button>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <h4 className="font-serif text-base mb-4">Posted Videos</h4>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {distributions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No distributions logged yet.</p>
+            ) : (
+              distributions.map(d => (
+                <div key={d.id} className="border border-border rounded-sm p-3 bg-card">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h5 className="font-serif text-sm mb-2">Video: {d.video_id}</h5>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {d.platforms.map(p => <span key={p} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-sm">{p}</span>)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-xs mb-2">
+                    {d.links.tiktok && <a href={d.links.tiktok} target="_blank" rel="noopener noreferrer" className="block text-primary hover:underline truncate">TikTok ↗</a>}
+                    {d.links.instagram && <a href={d.links.instagram} target="_blank" rel="noopener noreferrer" className="block text-primary hover:underline truncate">Instagram ↗</a>}
+                    {d.links.youtube && <a href={d.links.youtube} target="_blank" rel="noopener noreferrer" className="block text-primary hover:underline truncate">YouTube ↗</a>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
