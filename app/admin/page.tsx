@@ -714,7 +714,10 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
   const saveShipping = async (o: Order) => {
     try {
       await call('order_update', { id: o.id, status: o.status || '', tracking_number: o.tracking_number || '' })
-    } catch {}
+      alert('✓ Shipping info saved')
+    } catch (e) {
+      alert('❌ Failed to save: ' + (e instanceof Error ? e.message : 'Unknown error'))
+    }
   }
 
   return (
@@ -984,7 +987,14 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-              <img src={getQRCodeUrl()} alt="QR Code" style={{ width: '100px', height: '100px' }} />
+              <img
+                src={getQRCodeUrl()}
+                alt="QR Code"
+                style={{ width: '100px', height: '100px' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
             </div>
 
             <div style={{ textAlign: 'center', border: '3px solid #000', padding: '12px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000', marginBottom: '10px', wordBreak: 'break-all', backgroundColor: '#fff' }}>
