@@ -937,34 +937,34 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
         </div>
 
         {/* Label Preview */}
-        <div className="mb-6 border-2 border-dashed border-border p-4 bg-muted/20 rounded-none" ref={labelRef}>
-          <div style={{ width: '400px', height: '600px', border: '1px solid #000', padding: '8px', fontFamily: 'Arial, sans-serif', fontSize: '12px', lineHeight: '1.4', backgroundColor: 'white' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '8px', borderBottom: '2px solid #000', textAlign: 'center' }}>SHIPPING LABEL</div>
+        <div className="mb-6 border-2 border-dashed border-primary p-2 rounded-none" ref={labelRef}>
+          <div style={{ width: '100%', maxWidth: '480px', border: '2px solid #000', padding: '12px', fontFamily: 'Arial, sans-serif', fontSize: '13px', lineHeight: '1.5', backgroundColor: '#fff', color: '#000' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', paddingBottom: '8px', borderBottom: '3px solid #000', textAlign: 'center', color: '#000' }}>SHIPPING LABEL</div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
               <div>
-                <div style={{ fontWeight: 'bold', fontSize: '10px', marginBottom: '4px' }}>FROM:</div>
-                <div style={{ border: '2px solid #000', padding: '8px', minHeight: '90px', fontSize: '11px' }}>
-                  <strong>Hubs & Babydoll</strong><br/>
-                  {order.email || 'contact@hubsandbabydoll.com'}
+                <div style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '6px', color: '#000' }}>FROM:</div>
+                <div style={{ border: '2px solid #000', padding: '10px', minHeight: '100px', fontSize: '12px', color: '#000', wordWrap: 'break-word' }}>
+                  <strong style={{ color: '#000' }}>Hubs & Babydoll</strong><br/>
+                  <span style={{ color: '#000' }}>{order.email || 'contact@hubsandbabydoll.com'}</span>
                 </div>
               </div>
               <div>
-                <div style={{ fontWeight: 'bold', fontSize: '10px', marginBottom: '4px' }}>TO:</div>
-                <div style={{ border: '2px solid #000', padding: '8px', minHeight: '90px', fontSize: '11px' }}>
-                  <strong>{order.name || 'Customer'}</strong><br/>
-                  {address || '(Address to be filled in)'}
-                  {order.phone && <><br/>{order.phone}</>}
+                <div style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '6px', color: '#000' }}>TO:</div>
+                <div style={{ border: '2px solid #000', padding: '10px', minHeight: '100px', fontSize: '12px', color: '#000', wordWrap: 'break-word' }}>
+                  <strong style={{ color: '#000' }}>{order.name || 'Customer'}</strong><br/>
+                  <span style={{ color: '#000' }}>{address || '(Address to be filled)'}</span>
+                  {order.phone && <><br/><span style={{ color: '#000' }}>{order.phone}</span></>}
                 </div>
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '12px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+            <div style={{ textAlign: 'center', border: '2px solid #000', padding: '14px', minHeight: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000', marginBottom: '10px' }}>
               {order.tracking_number || 'NO TRACKING #'}
             </div>
 
-            <div style={{ fontSize: '10px', marginTop: '12px', textAlign: 'center' }}>
-              Order #{order.id} | {order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
+            <div style={{ fontSize: '11px', textAlign: 'center', color: '#000' }}>
+              <strong>Order #{order.id}</strong> | {order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}
             </div>
           </div>
         </div>
