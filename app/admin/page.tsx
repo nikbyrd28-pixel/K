@@ -1379,7 +1379,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
   const [selectedItem, setSelectedItem] = useState<EditItem | null>(null)
   const [generating, setGenerating] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
-  const [contentType, setContentType] = useState<'description' | 'social' | 'email'>('description')
+  const [contentType, setContentType] = useState<'description' | 'social' | 'email' | 'video'>('description')
 
   const load = useCallback(async () => {
     try {
@@ -1398,7 +1398,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
 
   const brandVoicePrompt = `You are a luxury body care brand copywriter. Your voice is: warm, intimate, poetic, and genuinely caring. Never use corporate speak or hard sell tactics. Focus on how the product makes people FEEL, not just features. Use sensory language (feel, glow, nourish, warmth). Target audience: people who give everything to others and deserve care too.`
 
-  const generateContent = async (item: EditItem, type: 'description' | 'social' | 'email') => {
+  const generateContent = async (item: EditItem, type: 'description' | 'social' | 'email' | 'video') => {
     setGenerating(true)
     setMsg(null)
     try {
@@ -1410,6 +1410,8 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
         prompt += `Write a captivating Instagram caption for "${item.name}" (max 150 chars). Use sensory language. No hashtags. Start with an emotional hook about self-care.`
       } else if (type === 'email') {
         prompt += `Write a short, warm email subject line and 2-sentence preview for promoting "${item.name}". Focus on the gift-giving angle and self-care message. Keep it under 50 words total.`
+      } else if (type === 'video') {
+        prompt += `Write a 15-30 second TikTok/Reels video script for "${item.name}". Use the "This is for..." format: start with "This is for the person who..." then introduce the product benefits. Include voiceover text and one visual direction. Focus on emotional connection and sensory appeal. Make it hook viewers immediately.`
       }
 
       const res = await fetch('http://localhost:11434/api/generate', {
@@ -1446,6 +1448,8 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
         setMsg(`Generated: "${generated}"`)
       } else if (type === 'email') {
         setMsg(`Generated: "${generated}"`)
+      } else if (type === 'video') {
+        setMsg(`Video Script:\n\n${generated}`)
       }
 
       load()
@@ -1464,7 +1468,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
       </div>
 
       {msg && (
-        <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : msg.includes('Generated') ? 'bg-blue-500/15 text-blue-700' : 'bg-amber-500/15 text-amber-700'}`}>
+        <div className={`p-4 rounded-sm text-sm whitespace-pre-wrap font-mono ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : msg.includes('Generated') || msg.includes('Video') ? 'bg-blue-500/15 text-blue-700' : 'bg-amber-500/15 text-amber-700'}`}>
           {msg}
         </div>
       )}
@@ -1504,8 +1508,8 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
 
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.1em] font-medium">Generate:</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['description', 'social', 'email'] as const).map((t) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {(['description', 'social', 'email', 'video'] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => {
@@ -1520,7 +1524,7 @@ function StudioTab({ call }: { call: (a: string, e?: Record<string, unknown>) =>
                           <Loader2 className="w-3 h-3 animate-spin" /> Generating
                         </span>
                       ) : (
-                        <span>{t === 'description' ? 'Product Copy' : t === 'social' ? 'Social Post' : 'Email'}</span>
+                        <span>{t === 'description' ? 'Product Copy' : t === 'social' ? 'Social Post' : t === 'email' ? 'Email' : 'Video Script'}</span>
                       )}
                     </button>
                   ))}
