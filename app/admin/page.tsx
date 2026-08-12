@@ -851,13 +851,11 @@ function OrdersTab({ call, onUser }: { call: (a: string, e?: Record<string, unkn
 
 function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [address, setAddress] = useState('')
-  const labelRef = useRef<HTMLDivElement>(null)
 
   const handlePrint = () => {
-    if (labelRef.current) {
-      const printWindow = window.open('', '', 'width=800,height=600')
-      if (printWindow) {
-        printWindow.document.write(`
+    const printWindow = window.open('', '', 'width=800,height=600')
+    if (printWindow) {
+      printWindow.document.write(`
           <html>
             <head>
               <title>Shipping Label - Order ${order.id}</title>
@@ -909,7 +907,6 @@ function ShippingLabelModal({ order, onClose }: { order: Order; onClose: () => v
           printWindow.close()
         }, 250)
       }
-    }
   }
 
   return (
