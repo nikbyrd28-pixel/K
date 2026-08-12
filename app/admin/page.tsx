@@ -2075,17 +2075,19 @@ function ScriptsPortal({ call, userRole }: { call: (a: string, e?: Record<string
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
-          <h4 className="font-serif text-base mb-4">New Script</h4>
-          <div className="space-y-3">
-            <input type="text" placeholder="Script Title" value={newScript.title} onChange={(e) => setNewScript({ ...newScript, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
-            <input type="text" placeholder="Product (optional)" value={newScript.product} onChange={(e) => setNewScript({ ...newScript, product: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
-            <textarea placeholder="Script content..." value={newScript.content} onChange={(e) => setNewScript({ ...newScript, content: e.target.value })} rows={6} className="w-full bg-input border border-border rounded-none px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none" />
-            <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Save Script</button>
+        {isScriptWriter && (
+          <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+            <h4 className="font-serif text-base mb-4">New Script</h4>
+            <div className="space-y-3">
+              <input type="text" placeholder="Script Title" value={newScript.title} onChange={(e) => setNewScript({ ...newScript, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+              <input type="text" placeholder="Product (optional)" value={newScript.product} onChange={(e) => setNewScript({ ...newScript, product: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+              <textarea placeholder="Script content..." value={newScript.content} onChange={(e) => setNewScript({ ...newScript, content: e.target.value })} rows={6} className="w-full bg-input border border-border rounded-none px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none" />
+              <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Save Script</button>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="lg:col-span-2">
+        <div className={isScriptWriter ? 'lg:col-span-2' : 'lg:col-span-3'}>
           <h4 className="font-serif text-base mb-4">Scripts Library</h4>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {scripts.length === 0 ? (
@@ -2186,26 +2188,28 @@ function VideosPortal({ call, userRole }: { call: (a: string, e?: Record<string,
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
-          <h4 className="font-serif text-base mb-4">Upload Video</h4>
-          <div className="space-y-3">
-            <input type="text" placeholder="Video Title" value={upload.title} onChange={(e) => setUpload({ ...upload, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
-            <div className="border-2 border-dashed border-border rounded-sm p-4 text-center cursor-pointer hover:border-primary transition">
-              <input type="file" accept="video/*" onChange={handleFileChange} className="hidden" id="videoInput" />
-              <label htmlFor="videoInput" className="cursor-pointer block">
-                {upload.file ? (
-                  <span className="text-xs text-primary">{upload.file.name}</span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Click to upload video</span>
-                )}
-              </label>
+        {isVideoEditor && (
+          <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+            <h4 className="font-serif text-base mb-4">Upload Video</h4>
+            <div className="space-y-3">
+              <input type="text" placeholder="Video Title" value={upload.title} onChange={(e) => setUpload({ ...upload, title: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+              <div className="border-2 border-dashed border-border rounded-sm p-4 text-center cursor-pointer hover:border-primary transition">
+                <input type="file" accept="video/*" onChange={handleFileChange} className="hidden" id="videoInput" />
+                <label htmlFor="videoInput" className="cursor-pointer block">
+                  {upload.file ? (
+                    <span className="text-xs text-primary">{upload.file.name}</span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Click to upload video</span>
+                  )}
+                </label>
+              </div>
+              <input type="text" placeholder="Script ID (optional)" value={upload.script_id} onChange={(e) => setUpload({ ...upload, script_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+              <button onClick={saveVideo} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Upload Video</button>
             </div>
-            <input type="text" placeholder="Script ID (optional)" value={upload.script_id} onChange={(e) => setUpload({ ...upload, script_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
-            <button onClick={saveVideo} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Upload Video</button>
           </div>
-        </div>
+        )}
 
-        <div className="lg:col-span-2">
+        <div className={isVideoEditor ? 'lg:col-span-2' : 'lg:col-span-3'}>
           <h4 className="font-serif text-base mb-4">Videos Library</h4>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {videos.length === 0 ? (
@@ -2286,35 +2290,37 @@ function DistributePortal({ call, userRole }: { call: (a: string, e?: Record<str
       {msg && <div className={`p-3 rounded-sm text-sm ${msg.startsWith('✓') ? 'bg-primary/15 text-primary' : 'bg-amber-500/15 text-amber-700'}`}>{msg}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
-          <h4 className="font-serif text-base mb-4">Log Distribution</h4>
-          <div className="space-y-4">
-            <input type="text" placeholder="Video ID" value={newDistro.video_id} onChange={(e) => setNewDistro({ ...newDistro, video_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
+        {isDistributor && (
+          <div className="lg:col-span-1 border border-border rounded-sm p-4 bg-card h-fit">
+            <h4 className="font-serif text-base mb-4">Log Distribution</h4>
+            <div className="space-y-4">
+              <input type="text" placeholder="Video ID" value={newDistro.video_id} onChange={(e) => setNewDistro({ ...newDistro, video_id: e.target.value })} className="w-full bg-input border border-border rounded-none px-3 h-10 text-sm focus:outline-none focus:border-primary" />
 
-            <div>
-              <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platforms:</p>
-              <div className="space-y-2">
-                {platforms.map(p => (
-                  <label key={p} className="flex items-center gap-2 text-xs cursor-pointer">
-                    <input type="checkbox" checked={newDistro.platforms.includes(p)} onChange={() => togglePlatform(p)} className="rounded" />
-                    {p}
-                  </label>
-                ))}
+              <div>
+                <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platforms:</p>
+                <div className="space-y-2">
+                  {platforms.map(p => (
+                    <label key={p} className="flex items-center gap-2 text-xs cursor-pointer">
+                      <input type="checkbox" checked={newDistro.platforms.includes(p)} onChange={() => togglePlatform(p)} className="rounded" />
+                      {p}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platform Links:</p>
-              <input type="url" placeholder="TikTok link" value={newDistro.links.tiktok} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, tiktok: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
-              <input type="url" placeholder="Instagram link" value={newDistro.links.instagram} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, instagram: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
-              <input type="url" placeholder="YouTube link" value={newDistro.links.youtube} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, youtube: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary" />
-            </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.1em] font-medium mb-2">Platform Links:</p>
+                <input type="url" placeholder="TikTok link" value={newDistro.links.tiktok} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, tiktok: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
+                <input type="url" placeholder="Instagram link" value={newDistro.links.instagram} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, instagram: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary mb-1" />
+                <input type="url" placeholder="YouTube link" value={newDistro.links.youtube} onChange={(e) => setNewDistro({ ...newDistro, links: { ...newDistro.links, youtube: e.target.value } })} className="w-full bg-input border border-border rounded-none px-3 h-8 text-xs focus:outline-none focus:border-primary" />
+              </div>
 
-            <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Log Distribution</button>
+              <button onClick={save} className="w-full bg-primary text-primary-foreground text-xs uppercase tracking-[0.12em] py-2 rounded-none hover:bg-primary/90">Log Distribution</button>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="lg:col-span-2">
+        <div className={isDistributor ? 'lg:col-span-2' : 'lg:col-span-3'}>
           <h4 className="font-serif text-base mb-4">Posted Videos</h4>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {distributions.length === 0 ? (
