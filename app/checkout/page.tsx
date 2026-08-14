@@ -444,8 +444,8 @@ export default function CheckoutPage() {
                 Place order, pay another way
               </button>
             </div>
-            <p className=”text-xs text-muted-foreground -mt-1 leading-relaxed”>
-              Payments are secure and handled on hosted checkout. Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
+            <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
+              Payments handled on secure checkout. Prefer Cash App, Venmo, or in person? Choose pay another way and we will confirm.
             </p>
           </div>
 
