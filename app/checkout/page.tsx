@@ -121,7 +121,9 @@ export default function CheckoutPage() {
         : form.method
     const message =
       `NEW ORDER — hubsandbabydoll.com\n\n${items}\n\nSubtotal: $${subtotal.toFixed(2)}\n` +
-      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\nTotal: $${total.toFixed(2)}\n` : '') +
+      (shipping > 0 ? `Shipping: $${shipping.toFixed(2)}\n` : '') +
+      (appliedCode ? `Code ${appliedCode}: -$${discount.toFixed(2)}\n` : '') +
+      `Total: $${total.toFixed(2)}\n` +
       `Payment: ${payLabel}\nFulfillment: ${form.method}\n` +
       (form.method === 'Ship to me' ? `Ship to: ${ship}\n` : '') +
       (isGift ? `🎁 GIFT${giftMessage ? ` — message: "${giftMessage}"` : ''}\n` : '') +
