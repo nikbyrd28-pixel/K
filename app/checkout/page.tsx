@@ -54,7 +54,8 @@ export default function CheckoutPage() {
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
-  const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100)
+  const shipping = form.method === 'Ship to me' ? 8 : 0
+  const total = Math.max(0, Math.round((subtotal - discount + shipping) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
   // Payment amounts are scaled so the charged total matches the discounted total.
   const payItems = () => {
@@ -436,14 +437,6 @@ export default function CheckoutPage() {
               </Button>
               <button
                 type="button"
-                onClick={payByCard}
-                disabled={submitting}
-                className="w-full rounded-none border border-primary/40 text-foreground hover:bg-primary/10 text-xs uppercase tracking-[0.2em] h-12 transition-colors disabled:opacity-60"
-              >
-                <span className="inline-flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay by card (Stripe)</span>
-              </button>
-              <button
-                type="button"
                 onClick={placeOrder}
                 disabled={submitting}
                 className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
@@ -451,9 +444,8 @@ export default function CheckoutPage() {
                 Place order, pay another way
               </button>
             </div>
-            <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
-              Card payments are handled on a secure hosted page — your card never touches this site.
-              Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
+            <p className=”text-xs text-muted-foreground -mt-1 leading-relaxed”>
+              Payments are secure and handled on hosted checkout. Prefer Cash App, Venmo, or in person? Choose “pay another way” and we&apos;ll confirm.
             </p>
           </div>
 
@@ -521,6 +513,12 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between text-sm text-primary">
                   <span>Discount ({codeLabel})</span>
                   <span>−${discount.toFixed(2)}</span>
+                </div>
+              )}
+              {shipping > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>${shipping.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex items-center justify-between pt-2">
