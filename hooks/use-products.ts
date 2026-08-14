@@ -41,12 +41,13 @@ const fetcher = (url: string) =>
 export function useProducts() {
   // Load the owner's saved edits; the built-in catalog is the fallback, so the
   // shop is never empty even before any edits (or if the backend is unreachable).
-  const { data } = useSWR<ProductRow[]>(
+  const { data, error } = useSWR<ProductRow[]>(
     `${SUPA_URL}/rest/v1/hb_products?select=*`,
     fetcher,
     { revalidateOnFocus: false },
   )
   const rows = Array.isArray(data) ? data : []
+  const isLoading = !data && !error
 
   const products: Product[] = mergeCatalog(rows)
     .filter((item) => item.active !== false)
@@ -64,5 +65,5 @@ export function useProducts() {
       liveSizes: item.sizes,
     }))
 
-  return { products, isLoading: false, error: null as Error | null }
+  return { products, isLoading, error: error as Error | null }
 }

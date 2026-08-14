@@ -57,7 +57,7 @@ export default function ProductDetailPage() {
   const sel = sizes[selected]
 
   const handleAdd = () => {
-    if (sel.soldOut) return
+    if (!sel || sel.soldOut) return
     addToCart({
       id: `${product.id}-${sel.label}`,
       variantId: sel.variantId ?? `${product.variantId}-${selected}`,
@@ -75,6 +75,7 @@ export default function ProductDetailPage() {
 
   const inStock = !allSoldOut
   const prices = sizes.filter((s) => !s.soldOut).map((s) => s.price)
+  const fallbackPrice = sel?.price ?? (sizes.length > 0 ? sizes[0].price : 0)
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -85,8 +86,8 @@ export default function ProductDetailPage() {
     offers: {
       '@type': 'AggregateOffer',
       priceCurrency: 'USD',
-      lowPrice: prices.length ? Math.min(...prices) : sel.price,
-      highPrice: prices.length ? Math.max(...prices) : sel.price,
+      lowPrice: prices.length ? Math.min(...prices) : fallbackPrice,
+      highPrice: prices.length ? Math.max(...prices) : fallbackPrice,
       offerCount: sizes.length,
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: `https://hubsandbabydoll.com/shop/${product.handle}`,
@@ -153,7 +154,7 @@ export default function ProductDetailPage() {
               {name}
             </h1>
             <p className="font-serif text-2xl text-primary mt-4">
-              {sel.soldOut ? 'Sold out' : `$${sel.price}`}
+              {sel && !sel.soldOut ? `$${sel.price}` : 'Sold out'}
             </p>
 
             <p className="text-base text-muted-foreground mt-6 leading-relaxed text-pretty">
@@ -194,7 +195,7 @@ export default function ProductDetailPage() {
 
             <Button
               onClick={handleAdd}
-              disabled={allSoldOut || sel.soldOut}
+              disabled={allSoldOut || !sel || sel.soldOut}
               className="mt-8 w-full sm:w-auto sm:self-start bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.2em] h-12 px-12 disabled:opacity-50"
             >
               {added ? (

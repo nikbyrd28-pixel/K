@@ -9,6 +9,7 @@ interface CartItem {
   price: number
   quantity: number
   image: string
+  shipping_timeframe?: string
 }
 
 interface ShoppingCartContextType {

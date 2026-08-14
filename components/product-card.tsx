@@ -18,7 +18,7 @@ export function ProductCard({ product }: { product: Product }) {
   const sel = sizes[selected]
 
   const handleAdd = () => {
-    if (sel.soldOut) return
+    if (!sel || sel.soldOut) return
     addToCart({
       id: sel.variantId ?? `${product.id}-${sel.label}`,
       variantId: sel.variantId ?? product.variantId,
@@ -106,7 +106,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <Button
           onClick={handleAdd}
-          disabled={allSoldOut || sel.soldOut}
+          disabled={allSoldOut || !sel || sel.soldOut}
           className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase tracking-[0.18em] h-12 disabled:opacity-50 shadow-lg shadow-primary/10 transition-all duration-200 hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
         >
           {allSoldOut ? 'Sold Out' : 'Add to Cart'}
