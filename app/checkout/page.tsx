@@ -273,8 +273,8 @@ export default function CheckoutPage() {
         </div>
         <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. Complete your
-          payment below and we&apos;ll get it handmade and on its way.
+          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. We&apos;ll see you at the
+          event. We&apos;ll collect payment there and get your order handmade and on its way.
         </p>
 
         <PaymentBox total={paidTotal} />
