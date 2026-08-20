@@ -434,7 +434,7 @@ export default function CheckoutPage() {
                 {submitting ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Starting secure checkout…</span>
                 ) : (
-                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Square · ${total.toFixed(2)}</span>
+                  <span className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Pay with Card · ${total.toFixed(2)}</span>
                 )}
               </Button>
               <button
@@ -443,7 +443,7 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full rounded-none text-muted-foreground hover:text-primary text-xs uppercase tracking-[0.2em] h-11 transition-colors disabled:opacity-60"
               >
-                Place order, pay another way
+                Pay in Person
               </button>
             </div>
             <p className="text-xs text-muted-foreground -mt-1 leading-relaxed">
