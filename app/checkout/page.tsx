@@ -54,7 +54,7 @@ export default function CheckoutPage() {
   const [codeMsg, setCodeMsg] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
 
-  const shipping = form.method === 'Ship to me' ? 12 : 0
+  const shipping = form.method === 'Ship to me' ? 8 : 0
   const total = Math.max(0, Math.round((subtotal - discount + shipping) * 100) / 100)
   const appliedCode = discount > 0 ? code.toUpperCase() : ''
   // Payment amounts are scaled so the charged total matches the discounted total.
