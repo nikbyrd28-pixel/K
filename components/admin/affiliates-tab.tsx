@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Loader2, RefreshCw, Search, DollarSign, Users, TrendingUp,
-  ChevronDown, ChevronRight, Copy, Check, Mail,
+  ChevronDown, ChevronRight, Copy, Check, Mail, ExternalLink,
 } from 'lucide-react'
 
 const SUPA_URL = 'https://qgbjiqdwzgkjkmqyjsmc.supabase.co'
@@ -21,6 +21,9 @@ export type Rep = {
   notes: string
   status: 'active' | 'paused' | 'removed' | string
   commission_rate: number
+  cashapp: string
+  venmo: string
+  paypal: string
   created_at: string | null
   unregistered: boolean
   code: string
@@ -205,6 +208,7 @@ function RepRow({ rep, open, onToggle, call, onChanged }: {
   const [draft, setDraft] = useState({
     name: rep.name, social: rep.social, notes: rep.notes,
     status: rep.status, commission_rate: String(rep.commission_rate),
+    cashapp: rep.cashapp, venmo: rep.venmo, paypal: rep.paypal,
   })
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 2500) }
@@ -223,6 +227,9 @@ function RepRow({ rep, open, onToggle, call, onChanged }: {
           notes: next.notes,
           status: next.status,
           commission_rate: Number(next.commission_rate) || 0,
+          cashapp: next.cashapp,
+          venmo: next.venmo,
+          paypal: next.paypal,
         },
       })
       setDraft(next)
@@ -260,6 +267,26 @@ function RepRow({ rep, open, onToggle, call, onChanged }: {
   }
 
   const owes = rep.owed > 0.004
+  const amt = owes ? rep.owed.toFixed(2) : ''
+
+  // One-tap pay: open the rep's payment app pre-filled, then log the payout so
+  // the Owed figure stays honest. The link only pre-fills an amount when one is
+  // owed; Venmo has no reliable web deep-link for a specific amount, so it just
+  // opens their profile and the amount is typed there.
+  const payVia = (kind: 'cashapp' | 'venmo' | 'paypal') => {
+    const url =
+      kind === 'cashapp'
+        ? `https://cash.app/$${rep.cashapp}${amt ? `/${amt}` : ''}`
+        : kind === 'venmo'
+          ? `https://venmo.com/u/${rep.venmo}`
+          : `https://paypal.me/${rep.paypal}${amt ? `/${amt}` : ''}`
+    window.open(url, '_blank', 'noopener')
+    if (!payAmount && amt) setPayAmount(amt)
+    if (!payNote) setPayNote(kind === 'cashapp' ? 'Cash App' : kind === 'venmo' ? 'Venmo' : 'PayPal')
+    flash('Opened — confirm in the app, then Record it below')
+  }
+
+  const hasHandle = !!(rep.cashapp || rep.venmo || rep.paypal)
 
   return (
     <div className={`border rounded-sm ${rep.status === 'active' ? 'border-border bg-card' : 'border-border/50 bg-card/50'}`}>
@@ -336,6 +363,44 @@ function RepRow({ rep, open, onToggle, call, onChanged }: {
             <Mini label="Owed" value={money(rep.owed)} highlight={owes} />
           </div>
 
+          {/* One-tap pay */}
+          {hasHandle && (
+            <div className="border border-primary/30 bg-primary/5 rounded-sm p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">
+                Send {owes ? money(rep.owed) : 'payment'}
+              </p>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Opens the app{owes ? ' pre-filled' : ''}. Confirm there, then Record it below so the balance updates.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {rep.cashapp && (
+                  <button
+                    onClick={() => payVia('cashapp')}
+                    className="inline-flex items-center gap-1.5 border border-primary/40 hover:bg-primary/10 rounded-none px-4 h-10 text-xs uppercase tracking-[0.15em]"
+                  >
+                    Cash App <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {rep.venmo && (
+                  <button
+                    onClick={() => payVia('venmo')}
+                    className="inline-flex items-center gap-1.5 border border-primary/40 hover:bg-primary/10 rounded-none px-4 h-10 text-xs uppercase tracking-[0.15em]"
+                  >
+                    Venmo <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {rep.paypal && (
+                  <button
+                    onClick={() => payVia('paypal')}
+                    className="inline-flex items-center gap-1.5 border border-primary/40 hover:bg-primary/10 rounded-none px-4 h-10 text-xs uppercase tracking-[0.15em]"
+                  >
+                    PayPal <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Record a payment */}
           <div className="border border-border rounded-sm p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-primary mb-3">Record a payment</p>
@@ -403,6 +468,16 @@ function RepRow({ rep, open, onToggle, call, onChanged }: {
                 className="bg-input border border-border rounded-none px-3 h-10 text-sm tabular-nums focus:outline-none focus:border-primary"
               />
             </label>
+          </div>
+
+          <div className="border border-border rounded-sm p-4">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1">Where to pay them</p>
+            <p className="text-[11px] text-muted-foreground mb-3">Fill in any one to turn on the one-tap pay buttons above. The $ or @ is optional.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Field label="Cash App" value={draft.cashapp} onChange={(v) => setDraft({ ...draft, cashapp: v })} />
+              <Field label="Venmo" value={draft.venmo} onChange={(v) => setDraft({ ...draft, venmo: v })} />
+              <Field label="PayPal.me" value={draft.paypal} onChange={(v) => setDraft({ ...draft, paypal: v })} />
+            </div>
           </div>
 
           <label className="flex flex-col gap-1.5">
