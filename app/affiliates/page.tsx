@@ -38,13 +38,20 @@ export default function AffiliatesPage() {
     setErrMsg('')
 
     try {
-      // Generate the affiliate's personal code. This reuses the same discount
-      // engine the storefront checkout validates against, so the code works the
-      // moment it's issued and every redemption is counted automatically.
+      // Issue the rep's code and register them in one call. The code comes from
+      // the same discount engine checkout validates against, so it works the
+      // moment it's issued, and it carries no use cap the way a customer
+      // referral code does.
       const res = await fetch(`${SUPA_URL}/functions/v1/hb-discount`, {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'refer', email: form.email.trim() }),
+        body: JSON.stringify({
+          action: 'affiliate_apply',
+          email: form.email.trim(),
+          name: form.name.trim(),
+          social: form.social.trim(),
+          audience: form.audience.trim(),
+        }),
       })
       const data = await res.json()
       if (!res.ok || !data.code) throw new Error('no code')

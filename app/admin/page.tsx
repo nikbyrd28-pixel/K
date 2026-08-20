@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { AffiliatesTab } from '@/components/admin/affiliates-tab'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -38,14 +39,14 @@ type DashUser = {
 type RolePermissions = {
   name: string
   description: string
-  canAccess: ('orders' | 'customers' | 'products' | 'studio' | 'scripts' | 'videos' | 'distribute' | 'rewards' | 'stats' | 'team')[]
+  canAccess: ('orders' | 'customers' | 'products' | 'studio' | 'scripts' | 'videos' | 'distribute' | 'rewards' | 'affiliates' | 'stats' | 'team')[]
 }
 
 const ROLE_PERMISSIONS: Record<DashUser['role'], RolePermissions> = {
   owner: {
     name: 'Owner',
     description: 'Full access to all features',
-    canAccess: ['orders', 'customers', 'products', 'studio', 'scripts', 'videos', 'distribute', 'rewards', 'stats', 'team'],
+    canAccess: ['orders', 'customers', 'products', 'studio', 'scripts', 'videos', 'distribute', 'rewards', 'affiliates', 'stats', 'team'],
   },
   script_writer: {
     name: 'Script Writer',
@@ -73,7 +74,7 @@ export default function AdminPage() {
   const [pw, setPw] = useState('')
   const [authed, setAuthed] = useState(false)
   const [user, setUser] = useState<DashUser | null>(null)
-  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'stats' | 'team' | 'studio' | 'scripts' | 'videos' | 'distribute'>('orders')
+  const [tab, setTab] = useState<'orders' | 'customers' | 'products' | 'rewards' | 'affiliates' | 'stats' | 'team' | 'studio' | 'scripts' | 'videos' | 'distribute'>('orders')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -190,6 +191,7 @@ export default function AdminPage() {
       { key: 'customers', label: 'Customers', group: 'Business' },
       { key: 'products', label: 'Products', group: 'Business' },
       { key: 'rewards', label: 'Rewards', group: 'Business' },
+      { key: 'affiliates', label: 'Affiliates', group: 'Business' },
       { key: 'stats', label: 'Analytics', group: 'Analytics' },
       { key: 'studio', label: 'Product Studio', group: 'Content Creation' },
       { key: 'scripts', label: 'Script Library', group: 'Content Creation' },
@@ -280,6 +282,7 @@ export default function AdminPage() {
       {tab === 'videos' && <VideosPortal call={call} userRole={user?.role} />}
       {tab === 'distribute' && <DistributePortal call={call} userRole={user?.role} />}
       {tab === 'rewards' && <RewardsTab call={call} />}
+      {tab === 'affiliates' && <AffiliatesTab password={pw} />}
       {tab === 'stats' && <StatsTab call={call} />}
       {tab === 'team' && <TeamTab call={call} meName={user?.name} />}
     </section>
