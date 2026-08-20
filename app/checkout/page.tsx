@@ -265,6 +265,17 @@ export default function CheckoutPage() {
     }
   }
 
+  // The confirming line has to match the fulfilment they picked — an online
+  // shipped order should never be told we'll see them at an event.
+  const confirmationNote =
+    form.method === 'Local pickup'
+      ? "We're making it by hand now, and we'll message you the moment it's ready to collect."
+      : form.method === 'Local delivery'
+        ? "We're making it by hand now, and we'll message you to arrange your delivery."
+        : form.method === 'Pick up at an event'
+          ? "We'll have it packed and waiting for you at the event."
+          : "We're making it by hand now, and it'll ship as soon as it's ready."
+
   if (done) {
     return (
       <section className="bg-background max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center">
@@ -273,8 +284,7 @@ export default function CheckoutPage() {
         </div>
         <h1 className="font-serif text-4xl lg:text-5xl mb-5 text-balance">Order received</h1>
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. We&apos;ll see you at the
-          event. We&apos;ll collect payment there and get your order handmade and on its way.
+          Thank you{form.name ? `, ${form.name.split(' ')[0]}` : ''} — your order is in. {confirmationNote}
         </p>
 
         <NewsletterSignup defaultEmail={form.email} />
