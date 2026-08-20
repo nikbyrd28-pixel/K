@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Loader2, Check, ChevronLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useShoppingCart } from '@/components/shopping-cart-provider'
-import { ReferFriend } from '@/components/refer-friend'
+import { NewsletterSignup } from '@/components/newsletter-signup'
 
 // Orders are captured into TB Command (the shared Supabase backend) so they
 // appear in the owner's dashboard. This anon key is a public, insert-only key.
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
           event. We&apos;ll collect payment there and get your order handmade and on its way.
         </p>
 
-        <ReferFriend defaultEmail={form.email} />
+        <NewsletterSignup defaultEmail={form.email} />
 
         <div className="mt-10">
           <Link
