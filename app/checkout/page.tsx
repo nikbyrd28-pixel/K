@@ -208,6 +208,19 @@ export default function CheckoutPage() {
           email: form.email.trim(),
           phone: form.phone.trim(),
           items: payItems(),
+          // Hand Square the address they already typed here so its checkout
+          // pre-fills instead of asking for the same thing a second time.
+          method: form.method,
+          address:
+            form.method === 'Ship to me'
+              ? {
+                  line1: form.address.trim(),
+                  line2: form.address2.trim(),
+                  city: form.city.trim(),
+                  state: form.state.trim(),
+                  zip: form.zip.trim(),
+                }
+              : null,
         }),
       })
       const data = await res.json()
@@ -235,6 +248,19 @@ export default function CheckoutPage() {
           email: form.email.trim(),
           phone: form.phone.trim(),
           items: payItems(),
+          // Hand Square the address they already typed here so its checkout
+          // pre-fills instead of asking for the same thing a second time.
+          method: form.method,
+          address:
+            form.method === 'Ship to me'
+              ? {
+                  line1: form.address.trim(),
+                  line2: form.address2.trim(),
+                  city: form.city.trim(),
+                  state: form.state.trim(),
+                  zip: form.zip.trim(),
+                }
+              : null,
         }),
       })
       const data = await res.json()
