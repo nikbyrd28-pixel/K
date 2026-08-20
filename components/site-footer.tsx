@@ -41,6 +41,7 @@ export function SiteFooter() {
               { href: '/shop', label: 'Shop' },
               { href: '/about', label: 'Our Story' },
               { href: '/faq', label: 'FAQ' },
+              { href: '/affiliates', label: 'Affiliates' },
               { href: '/shipping-policy', label: 'Shipping' },
               { href: '/refund-policy', label: 'Refunds' },
               { href: '/privacy-policy', label: 'Privacy' },

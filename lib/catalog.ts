@@ -43,6 +43,8 @@ export type CatalogItem = {
   description: string
   /** Photo file inside /public/products — leave this as it is. */
   image: string
+  /** Optional second photo (a styled/lifestyle shot) shown under the main one. */
+  image2?: string
   imageAlt: string
   sizes: CatalogSize[]
   shipping_timeframe?: string
@@ -65,6 +67,7 @@ export const CATALOG: CatalogItem[] = [
     description:
       'For the woman who gives so much of herself. A soothing Lavender Rose set — oil, body butter, body wash — a gentle reminder to slow down, breathe, and pour a little love back in.',
     image: '/products/pro-seen-lavender-set.jpg',
+    image2: '/products/pro-seen-lavender-portrait.jpg',
     imageAlt: 'SEEN Lavender Rose gift box set by Hubs & Babydoll',
     sizes: [{ size: 'Gift box', price: 40 }],
   },
@@ -229,6 +232,7 @@ export type ProductRow = {
   name: string
   description: string
   image: string
+  image2?: string
   sizes: CatalogSize[]
   sort: number
   active: boolean
@@ -251,6 +255,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
       name: r.name || item.name,
       description: r.description ?? item.description,
       image: r.image || item.image,
+      image2: r.image2 || item.image2,
       imageAlt: item.imageAlt || r.name || item.name,
       sizes: Array.isArray(r.sizes) && r.sizes.length ? r.sizes : item.sizes,
       active: r.active !== false,
@@ -267,6 +272,7 @@ export function mergeCatalog(rows: ProductRow[] = []): EffectiveItem[] {
       name: r.name,
       description: r.description,
       image: r.image,
+      image2: r.image2,
       imageAlt: r.name,
       sizes: Array.isArray(r.sizes) ? r.sizes : [],
       active: r.active !== false,

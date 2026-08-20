@@ -267,7 +267,7 @@ export default function CheckoutPage() {
 
   if (done) {
     return (
-      <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center">
+      <section className="bg-background max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center">
         <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 border border-primary flex items-center justify-center mb-8">
           <Check className="w-7 h-7 text-primary" />
         </div>
@@ -279,12 +279,18 @@ export default function CheckoutPage() {
 
         <NewsletterSignup defaultEmail={form.email} />
 
-        <div className="mt-10">
+        <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4">
           <Link
             href="/shop"
-            className="text-xs uppercase tracking-[0.2em] text-primary border-b border-primary/40 pb-1 hover:border-primary transition-colors"
+            className="inline-flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em] font-medium transition-colors"
           >
-            Continue shopping
+            Shop more
+          </Link>
+          <Link
+            href="/affiliates"
+            className="inline-flex items-center justify-center rounded-none px-9 h-12 text-xs uppercase tracking-[0.2em] font-medium border border-primary/40 text-foreground hover:bg-primary/10 transition-colors"
+          >
+            Earn with us
           </Link>
         </div>
       </section>

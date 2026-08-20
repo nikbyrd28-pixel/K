@@ -1906,7 +1906,10 @@ function TeamTab({ call, meName }: { call: (a: string, e?: Record<string, unknow
 
   const updateRole = async (a: Admin, newRole: DashUser['role']) => {
     try {
-      await call('admin_save', { admin: { id: a.id, name: a.name, role: newRole, password: a.password } })
+      // No password field: the list endpoint never returns one, so sending it
+      // only ever transmitted `undefined` (dropped by JSON.stringify). Omitting
+      // it keeps the payload identical and lets the backend keep the stored one.
+      await call('admin_save', { admin: { id: a.id, name: a.name, role: newRole } })
       flash(`Role updated for ${a.name}`)
       load()
     } catch (e) {
@@ -2365,7 +2368,7 @@ function DistributePortal({ call, userRole }: { call: (a: string, e?: Record<str
                     <div className="flex-1">
                       <h5 className="font-serif text-sm mb-2">Video: {d.video_id}</h5>
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {d.platforms.map(p => <span key={p} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-sm">{p}</span>)}
+                        {d.platforms.map((p: string) => <span key={p} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-sm">{p}</span>)}
                       </div>
                     </div>
                   </div>
