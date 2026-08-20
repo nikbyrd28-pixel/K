@@ -8,7 +8,7 @@ export function CollectionShowcase() {
     <section className="relative overflow-hidden border-y border-border">
       <div className="relative min-h-[520px] lg:min-h-[600px] flex items-center">
         <Image
-          src="https://qgbjiqdwzgkjkmqyjsmc.supabase.co/storage/v1/render/image/public/site-assets/collection-4k.png?width=2400&quality=80"
+          src="/products/pro-collection.jpg"
           alt="The full Hubs & Babydoll collection — oils, butters, washes, and gift boxes"
           fill
           className="object-cover object-center"
