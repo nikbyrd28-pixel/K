@@ -277,8 +277,6 @@ export default function CheckoutPage() {
           event. We&apos;ll collect payment there and get your order handmade and on its way.
         </p>
 
-        <PaymentBox total={paidTotal} />
-
         <ReferFriend defaultEmail={form.email} />
 
         <div className="mt-10">
