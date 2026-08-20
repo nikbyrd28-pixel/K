@@ -57,9 +57,9 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: '/hero.png',
+        url: '/og.png',
         width: 1200,
-        height: 1200,
+        height: 630,
         alt: 'Hubs & Babydoll body care and wellness essentials',
       },
     ],
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title,
     description,
-    images: ['/hero.png'],
+    images: ['/og.png'],
   },
   robots: {
     index: true,
